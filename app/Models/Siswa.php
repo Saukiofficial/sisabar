@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Siswa extends Model
+{
+    protected $guarded = [];
+
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class);
+    }
+
+    // Relasi ke User (Akun Login)
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}

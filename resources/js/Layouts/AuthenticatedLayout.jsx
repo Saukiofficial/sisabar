@@ -5,16 +5,16 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Home, Book, BookOpen, ClipboardCheck, ScanLine, User, Settings,
     Menu, X, Moon, Sun, LogOut, FileText, Building, Users,
-    Activity, GraduationCap, List, Edit, Calendar, CheckCircle
+    Activity, GraduationCap, List, Edit, Calendar, CheckCircle, MoreHorizontal
 } from 'lucide-react';
 
 export default function Authenticated({ user, header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [darkMode, setDarkMode] = useState(false);
 
     // Ambil data roles dari props Inertia dengan aman
     const { props } = usePage();
-    // Prioritas: props.auth.roles -> user.roles -> array kosong
     const roles = props.auth?.roles || user?.roles || [];
 
     // --- LOGIC DARK MODE ---
@@ -44,12 +44,12 @@ export default function Authenticated({ user, header, children }) {
     const isKepsek = roles.includes('Kepala Sekolah');
     const isSiswa = roles.includes('Siswa');
 
-    // Helper untuk cek route aman (mencegah error jika route belum ada di web.php)
+    // Helper untuk cek route aman
     const safeRoute = (name) => {
         try { return route(name); } catch (e) { return '#'; }
     };
 
-    // Helper untuk cek active state (mendukung wildcard *)
+    // Helper untuk cek active state
     const isActive = (pattern) => {
         try { return route().current(pattern); } catch (e) { return false; }
     };
@@ -64,64 +64,72 @@ export default function Authenticated({ user, header, children }) {
             title: 'Dashboard',
             icon: <Home size={20} />,
             href: safeRoute('guru.dashboard'),
-            active: isActive('guru.dashboard')
+            active: isActive('guru.dashboard'),
+            inBottomNav: true
         },
         {
             show: isGuru,
             title: 'Jurnal Mengajar',
             icon: <Book size={20} />,
             href: safeRoute('guru.jurnal.index'),
-            active: isActive('guru.jurnal.*')
+            active: isActive('guru.jurnal.*'),
+            inBottomNav: true
         },
         {
             show: isGuru,
             title: 'Absensi Siswa',
             icon: <ClipboardCheck size={20} />,
             href: safeRoute('guru.absensi.index'),
-            active: isActive('guru.absensi.*')
+            active: isActive('guru.absensi.*'),
+            inBottomNav: true
         },
         {
             show: isGuru,
             title: 'Scan Kehadiran',
             icon: <ScanLine size={20} />,
             href: safeRoute('guru.absensi-saya.index'),
-            active: isActive('guru.absensi-saya.*')
+            active: isActive('guru.absensi-saya.*'),
+            inBottomNav: false
         },
         {
             show: isGuru,
             title: 'Jadwal Saya',
             icon: <Activity size={20} />,
             href: safeRoute('guru.jadwal.index'),
-            active: isActive('guru.jadwal.index')
+            active: isActive('guru.jadwal.index'),
+            inBottomNav: true
         },
-        // --- Fitur Akademik Guru ---
         {
             show: isGuru,
             title: 'Perangkat Ajar',
             icon: <FileText size={20} />,
             href: safeRoute('guru.perangkat.index'),
-            active: isActive('guru.perangkat.*')
+            active: isActive('guru.perangkat.*'),
+            inBottomNav: false
         },
         {
             show: isGuru,
             title: 'Bank Soal',
             icon: <List size={20} />,
             href: safeRoute('guru.bank-soal.index'),
-            active: isActive('guru.bank-soal.*')
+            active: isActive('guru.bank-soal.*'),
+            inBottomNav: false
         },
         {
             show: isGuru,
             title: 'Manajemen Ujian',
             icon: <Edit size={20} />,
             href: safeRoute('guru.ujian.index'),
-            active: isActive('guru.ujian.*')
+            active: isActive('guru.ujian.*'),
+            inBottomNav: false
         },
         {
             show: isGuru,
             title: 'Jadwal Ulangan',
             icon: <Calendar size={20} />,
             href: safeRoute('guru.ulangan.index'),
-            active: isActive('guru.ulangan.*')
+            active: isActive('guru.ulangan.*'),
+            inBottomNav: false
         },
 
         // =================================================================
@@ -132,64 +140,72 @@ export default function Authenticated({ user, header, children }) {
             title: 'Dashboard',
             icon: <Home size={20} />,
             href: safeRoute('admin.dashboard'),
-            active: isActive('admin.dashboard')
+            active: isActive('admin.dashboard'),
+            inBottomNav: true
         },
         {
             show: isAdmin,
             title: 'Data Guru',
             icon: <Users size={20} />,
             href: safeRoute('gurus.index'),
-            active: isActive('gurus.*')
+            active: isActive('gurus.*'),
+            inBottomNav: true
         },
         {
             show: isAdmin,
             title: 'Data Siswa',
             icon: <GraduationCap size={20} />,
             href: safeRoute('siswas.index'),
-            active: isActive('siswas.*')
+            active: isActive('siswas.*'),
+            inBottomNav: true
         },
         {
             show: isAdmin,
             title: 'Data Kelas',
             icon: <Building size={20} />,
             href: safeRoute('kelas.index'),
-            active: isActive('kelas.*')
+            active: isActive('kelas.*'),
+            inBottomNav: false
         },
         {
             show: isAdmin,
             title: 'Jadwal Pelajaran',
             icon: <Activity size={20} />,
             href: safeRoute('jadwals.index'),
-            active: isActive('jadwals.*')
+            active: isActive('jadwals.*'),
+            inBottomNav: true
         },
         {
             show: isAdmin,
             title: 'Mata Pelajaran',
             icon: <Book size={20} />,
             href: safeRoute('mapels.index'),
-            active: isActive('mapels.*')
+            active: isActive('mapels.*'),
+            inBottomNav: false
         },
-        // --- Monitoring Admin ---
         {
             show: isAdmin,
             title: 'Bank Soal Guru',
             icon: <BookOpen size={20} />,
             href: safeRoute('admin.bank-soal.index'),
-            active: isActive('admin.bank-soal.*')
+            active: isActive('admin.bank-soal.*'),
+            inBottomNav: false
         },
         {
             show: isAdmin,
             title: 'Monitoring Perangkat',
             icon: <FileText size={20} />,
             href: safeRoute('admin.perangkat.index'),
-            active: isActive('admin.perangkat.*')
+            active: isActive('admin.perangkat.*'),
+            inBottomNav: false
         },
         {
             show: isAdmin,
             title: 'QR Display',
             icon: <ScanLine size={20} />,
             href: safeRoute('admin.qr.generate'),
-            active: isActive('admin.qr.generate')
+            active: isActive('admin.qr.generate'),
+            inBottomNav: false
         },
 
         // =================================================================
@@ -200,63 +216,75 @@ export default function Authenticated({ user, header, children }) {
             title: 'Dashboard',
             icon: <Home size={20} />,
             href: safeRoute('kepsek.dashboard'),
-            active: isActive('kepsek.dashboard')
+            active: isActive('kepsek.dashboard'),
+            inBottomNav: true
         },
-        // --- [BARU] MENU SUPERVISI ---
         {
             show: isKepsek,
             title: 'Supervisi Perangkat',
             icon: <CheckCircle size={20} />,
             href: safeRoute('kepsek.supervisi.index'),
-            active: isActive('kepsek.supervisi.*')
+            active: isActive('kepsek.supervisi.*'),
+            inBottomNav: true
         },
         {
             show: isKepsek,
             title: 'Monitoring Jurnal',
             icon: <BookOpen size={20} />,
             href: safeRoute('kepsek.jurnal'),
-            active: isActive('kepsek.jurnal')
+            active: isActive('kepsek.jurnal'),
+            inBottomNav: true
         },
         {
             show: isKepsek,
             title: 'Rekap Kehadiran',
             icon: <ClipboardCheck size={20} />,
             href: safeRoute('kepsek.absensi'),
-            active: isActive('kepsek.absensi')
+            active: isActive('kepsek.absensi'),
+            inBottomNav: true
         },
         {
             show: isKepsek,
             title: 'Laporan Siswa',
             icon: <GraduationCap size={20} />,
             href: safeRoute('kepsek.laporan-siswa'),
-            active: isActive('kepsek.laporan-siswa')
+            active: isActive('kepsek.laporan-siswa'),
+            inBottomNav: false
         },
 
         // =================================================================
-        // MENU SISWA (PANEL BARU)
+        // MENU SISWA
         // =================================================================
         {
             show: isSiswa,
             title: 'Dashboard',
             icon: <Home size={20} />,
             href: safeRoute('siswa.dashboard'),
-            active: isActive('siswa.dashboard')
+            active: isActive('siswa.dashboard'),
+            inBottomNav: true
         },
         {
             show: isSiswa,
             title: 'Jadwal Ulangan',
             icon: <Calendar size={20} />,
             href: safeRoute('siswa.ujian.index'),
-            active: isActive('siswa.ujian.*')
+            active: isActive('siswa.ujian.*'),
+            inBottomNav: true
         },
         {
             show: isSiswa,
             title: 'Lihat Nilai',
             icon: <GraduationCap size={20} />,
             href: safeRoute('siswa.nilai.index'),
-            active: isActive('siswa.nilai.*')
+            active: isActive('siswa.nilai.*'),
+            inBottomNav: true
         },
     ];
+
+    // Filter menu yang ditampilkan
+    const visibleMenus = menus.filter(m => m.show);
+    const bottomNavMenus = visibleMenus.filter(m => m.inBottomNav).slice(0, 4);
+    const moreMenus = visibleMenus.filter(m => !m.inBottomNav);
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -272,7 +300,7 @@ export default function Authenticated({ user, header, children }) {
 
                 <div className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
                     <nav className="px-4 space-y-1">
-                        {menus.filter(m => m.show).map((menu, index) => (
+                        {visibleMenus.map((menu, index) => (
                             <Link
                                 key={index}
                                 href={menu.href}
@@ -315,14 +343,15 @@ export default function Authenticated({ user, header, children }) {
             {/* --- MAIN CONTENT WRAPPER --- */}
             <div className="md:ml-64 min-h-screen flex flex-col transition-all duration-300">
 
-                {/* TOP BAR (MOBILE HEADER & DESKTOP USER PROFILE) */}
+                {/* TOP BAR */}
                 <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm">
 
-                    {/* Mobile Logo & Toggle */}
+                    {/* Mobile Logo */}
                     <div className="md:hidden flex items-center">
                         <Link href="/">
                             <ApplicationLogo className="block h-8 w-auto fill-current text-blue-600 dark:text-white" />
                         </Link>
+                        <span className="ml-2 font-bold text-base text-gray-800 dark:text-white">SI SABAR</span>
                     </div>
 
                     {/* Page Title (Desktop) */}
@@ -362,29 +391,108 @@ export default function Authenticated({ user, header, children }) {
                 </nav>
 
                 {/* CONTENT AREA */}
-                <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
                     {children}
                 </main>
             </div>
 
-            {/* --- BOTTOM NAV (MOBILE ONLY) --- */}
-            <div className="md:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 h-16 flex justify-around items-center z-50 shadow-lg">
-                {menus.filter(m => m.show).slice(0, 4).map((link, index) => (
-                    <Link
-                        key={index}
-                        href={link.href}
-                        className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${link.active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-blue-500'}`}
-                    >
-                        {link.active ? <div className="bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-xl">{link.icon}</div> : link.icon}
-                        <span className="text-[10px] font-medium truncate max-w-[60px]">{link.title.split(' ')[0]}</span>
-                    </Link>
-                ))}
+            {/* --- BOTTOM NAVIGATION BAR (MOBILE ONLY) --- */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 shadow-lg safe-area-bottom">
+                <div className="flex items-center justify-around h-16 px-2">
+                    {bottomNavMenus.map((menu, index) => (
+                        <Link
+                            key={index}
+                            href={menu.href}
+                            className={`flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-colors ${
+                                menu.active
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-300'
+                            }`}
+                        >
+                            {menu.active ? (
+                                <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-xl">
+                                    {menu.icon}
+                                </div>
+                            ) : (
+                                menu.icon
+                            )}
+                            <span className="text-[10px] font-medium truncate max-w-[60px]">
+                                {menu.title.split(' ')[0]}
+                            </span>
+                        </Link>
+                    ))}
 
-                <Link href={safeRoute('profile.edit')} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive('profile.edit') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                    <Settings size={20} />
-                    <span className="text-[10px] font-medium">Akun</span>
-                </Link>
+                    {/* More Menu Button */}
+                    {moreMenus.length > 0 && (
+                        <button
+                            onClick={() => setShowMobileMenu(true)}
+                            className="flex flex-col items-center justify-center flex-1 h-full space-y-1 text-gray-500 dark:text-gray-400"
+                        >
+                            <MoreHorizontal size={20} />
+                            <span className="text-[10px] font-medium">Lainnya</span>
+                        </button>
+                    )}
+                </div>
             </div>
+
+            {/* --- MOBILE MENU MODAL --- */}
+            {showMobileMenu && (
+                <div className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)}>
+                    <div
+                        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl max-h-[80vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-white">Menu Lainnya</h3>
+                            <button
+                                onClick={() => setShowMobileMenu(false)}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                            >
+                                <X size={20} className="text-gray-500 dark:text-gray-400" />
+                            </button>
+                        </div>
+
+                        {/* Menu List */}
+                        <div className="p-4 space-y-2">
+                            {moreMenus.map((menu, index) => (
+                                <Link
+                                    key={index}
+                                    href={menu.href}
+                                    onClick={() => setShowMobileMenu(false)}
+                                    className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${
+                                        menu.active
+                                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    }`}
+                                >
+                                    <div className={`p-2 rounded-lg ${
+                                        menu.active
+                                        ? 'bg-blue-100 dark:bg-blue-900/50'
+                                        : 'bg-gray-100 dark:bg-gray-700'
+                                    }`}>
+                                        {menu.icon}
+                                    </div>
+                                    <span className="font-medium text-sm">{menu.title}</span>
+                                </Link>
+                            ))}
+
+                            {/* Logout Button */}
+                            <Link
+                                href={safeRoute('logout')}
+                                method="post"
+                                as="button"
+                                className="flex items-center gap-4 px-4 py-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors w-full"
+                            >
+                                <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20">
+                                    <LogOut size={20} />
+                                </div>
+                                <span className="font-medium text-sm">Keluar</span>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

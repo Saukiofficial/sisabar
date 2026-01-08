@@ -81,7 +81,7 @@ export default function Authenticated({ user, header, children }) {
         { show: isKepsek, title: 'Supervisi', icon: <CheckCircle size={20} />, href: safeRoute('kepsek.supervisi.index'), active: isActive('kepsek.supervisi.*') },
         { show: isKepsek, title: 'Jurnal', icon: <BookOpen size={20} />, href: safeRoute('kepsek.jurnal'), active: isActive('kepsek.jurnal') },
         { show: isKepsek, title: 'Absensi', icon: <ClipboardCheck size={20} />, href: safeRoute('kepsek.absensi'), active: isActive('kepsek.absensi') },
-        { show: isKepsek, title: 'Laporan', icon: <GraduationCap size={20} />, href: safeRoute('kepsek.laporan-siswa'), active: isActive('kepsek.laporan-siswa') },
+
 
         // ================= SISWA =================
         { show: isSiswa, title: 'Dashboard', icon: <Home size={20} />, href: safeRoute('siswa.dashboard'), active: isActive('siswa.dashboard') },

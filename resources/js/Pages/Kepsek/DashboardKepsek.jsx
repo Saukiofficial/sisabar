@@ -165,20 +165,6 @@ export default function DashboardKepsek({ auth, stats = {}, recentJurnals = [] }
                                     <p className="text-xs text-purple-600 dark:text-purple-400">Pantau KBM kelas</p>
                                 </div>
                             </Link>
-
-                            {/* LINK LAPORAN SISWA (AKTIF) */}
-                            <Link
-                                href={route('kepsek.laporan-siswa')}
-                                className="group flex items-center p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 border border-orange-100 dark:border-orange-800 transition-all"
-                            >
-                                <div className="p-2 bg-white dark:bg-orange-800 rounded-lg mr-3 shadow-sm group-hover:scale-110 transition-transform">
-                                    <GraduationCap className="w-5 h-5 text-orange-600 dark:text-orange-300" />
-                                </div>
-                                <div>
-                                    <h5 className="font-bold text-orange-800 dark:text-orange-200">Laporan Siswa</h5>
-                                    <p className="text-xs text-orange-600 dark:text-orange-400">Rekap Absensi Siswa</p>
-                                </div>
-                            </Link>
                         </div>
                     </div>
                 </div>

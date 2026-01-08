@@ -3,7 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Calendar, BookOpen, Clock, FileText, ImageIcon, User,
-    Search, Eye, X, CheckCircle, Printer
+    Search, Eye, X, CheckCircle, Printer, ArrowLeft
 } from 'lucide-react';
 
 export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
@@ -23,6 +23,13 @@ export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
     const openDetail = (jurnal) => {
         setSelectedJurnal(jurnal);
         setShowModal(true);
+    };
+
+    // Fungsi tutup modal
+    const closeDetail = () => {
+        setShowModal(false);
+        // Delay sedikit agar animasi smooth sebelum data dihapus
+        setTimeout(() => setSelectedJurnal(null), 300);
     };
 
     return (
@@ -154,32 +161,40 @@ export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
                     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
                         <div className="bg-white w-full max-w-4xl min-h-screen md:min-h-0 md:rounded-xl shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-200">
 
-                            {/* Toolbar Modal */}
-                            <div className="p-4 border-b flex justify-between items-center bg-gray-50 no-print rounded-t-xl">
-                                <h3 className="font-bold text-gray-700 text-lg flex items-center gap-2">
-                                    <FileText className="w-5 h-5 text-purple-600" /> Detail Jurnal Mengajar
-                                </h3>
+                            {/* Toolbar Modal (Header) */}
+                            <div className="p-4 border-b flex justify-between items-center bg-gray-50 no-print rounded-t-xl sticky top-0 z-10 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    {/* TOMBOL KEMBALI BESAR DI HEADER */}
+                                    <button
+                                        onClick={closeDetail}
+                                        className="p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full transition flex items-center justify-center"
+                                        title="Kembali"
+                                    >
+                                        <ArrowLeft className="w-5 h-5" />
+                                    </button>
+                                    <h3 className="font-bold text-gray-700 text-lg flex items-center gap-2">
+                                        <FileText className="w-5 h-5 text-purple-600" /> Detail Jurnal
+                                    </h3>
+                                </div>
+
                                 <div className="flex gap-2">
                                     {selectedJurnal.dokumentasi && (
                                         <a
                                             href={`/storage/${selectedJurnal.dokumentasi}`}
                                             target="_blank"
-                                            className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold hover:bg-indigo-200 flex items-center gap-1"
+                                            className="hidden sm:flex px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold hover:bg-indigo-200 items-center gap-1"
                                         >
-                                            <ImageIcon className="w-4 h-4" /> Bukti Foto
+                                            <ImageIcon className="w-4 h-4" /> Bukti
                                         </a>
                                     )}
                                     <button onClick={() => window.print()} className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-300 flex items-center gap-1">
                                         <Printer className="w-4 h-4" /> Cetak
                                     </button>
-                                    <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-red-100 text-gray-400 hover:text-red-500 rounded-full transition">
-                                        <X className="w-6 h-6" />
-                                    </button>
                                 </div>
                             </div>
 
                             {/* KONTEN DETAIL (Bisa Dicetak) */}
-                            <div id="printable-area" className="p-8 md:p-10 font-serif text-black leading-relaxed bg-white">
+                            <div id="printable-area" className="p-8 md:p-10 font-serif text-black leading-relaxed bg-white flex-1 overflow-y-auto">
                                 {/* Kop Surat Sederhana */}
                                 <div className="text-center border-b-2 border-black pb-4 mb-6">
                                     <h4 className="text-lg font-bold uppercase tracking-wider mb-1">LEMBAR MONITORING PEMBELAJARAN</h4>
@@ -277,6 +292,17 @@ export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Footer Modal dengan Tombol Kembali Besar */}
+                            <div className="p-4 border-t bg-gray-50 no-print rounded-b-xl flex justify-center">
+                                <button
+                                    onClick={closeDetail}
+                                    className="w-full md:w-auto px-8 py-3 bg-gray-800 text-white rounded-lg font-bold hover:bg-gray-900 transition shadow-lg flex items-center justify-center gap-2"
+                                >
+                                    <ArrowLeft className="w-5 h-5" /> Kembali ke Daftar
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 )}

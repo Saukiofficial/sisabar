@@ -9,7 +9,6 @@ use App\Models\Mapel;
 use App\Models\Guru;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class JurnalController extends Controller
@@ -17,16 +16,13 @@ class JurnalController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $guru = Guru::where('user_id', $user->id)->first();
+        $guru = Guru::where('user_id', $user->id)->firstOrFail();
 
-        if (!$guru) {
-            return redirect()->route('dashboard');
-        }
-
+        // Load jurnal dengan relasi lengkap
         $jurnals = Jurnal::with(['kelas', 'mapel'])
             ->where('guru_id', $guru->id)
             ->latest()
-            ->get();
+            ->paginate(10); // Gunakan pagination agar halaman tidak berat
 
         return Inertia::render('Guru/Jurnal/Index', [
             'jurnals' => $jurnals,
@@ -37,35 +33,69 @@ class JurnalController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        // Validasi input yang lebih lengkap sesuai form HTML
+        $data = $request->validate([
+            // Info Umum
             'kelas_id' => 'required',
             'mapel_id' => 'required',
-            'materi' => 'required',
-            // PERBAIKAN DI SINI: Ganti 'image' menjadi 'mimes:jpg,jpeg,png,pdf,doc,docx'
-            'dokumentasi' => 'nullable|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // Max 5MB
-        ], [
-            // Custom Error Messages (Opsional, agar lebih jelas)
-            'dokumentasi.mimes' => 'Format file harus berupa Foto (JPG/PNG) atau Dokumen (PDF).',
-            'dokumentasi.max' => 'Ukuran file maksimal 5MB.',
+            'tanggal' => 'required|date',
+            'materi' => 'required|string', // Materi Pokok
+            'sub_materi' => 'nullable|string',
+            'semester' => 'required|string',
+            'pertemuan_ke' => 'required|integer',
+            'jam_pelajaran' => 'nullable|string',
+            'ki_kd' => 'nullable|string',
+
+            // Isi Jurnal
+            'tujuan_pembelajaran' => 'nullable|string',
+            'penjelasan_materi' => 'nullable|string',
+            'kegiatan_pembelajaran' => 'nullable|string',
+            'media_belajar' => 'nullable|string',
+            'respon_siswa' => 'nullable|string',
+            'jenis_penilaian' => 'nullable|string',
+
+            // Kehadiran
+            'jml_hadir' => 'required|integer|min:0',
+            'jml_izin' => 'required|integer|min:0',
+            'jml_sakit' => 'required|integer|min:0',
+            'jml_alpa' => 'required|integer|min:0',
+
+            // Evaluasi
+            'tugas_pr' => 'nullable|string',
+            'evaluasi_hasil' => 'nullable|string',
+            'permasalahan_kbm' => 'nullable|string',
+            'catatan' => 'nullable|string',
+
+            // File
+            'dokumentasi' => 'nullable|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
         ]);
 
         $guru = Guru::where('user_id', Auth::id())->first();
-        $path = null;
 
+        // Handle Upload File
+        $path = null;
         if ($request->hasFile('dokumentasi')) {
             $path = $request->file('dokumentasi')->store('jurnal-docs', 'public');
         }
 
-        Jurnal::create([
+        // Simpan Data
+        Jurnal::create(array_merge($data, [
             'guru_id' => $guru->id,
-            'tanggal' => now(),
-            'kelas_id' => $request->kelas_id,
-            'mapel_id' => $request->mapel_id,
-            'materi' => $request->materi,
-            'catatan' => $request->catatan,
-            'dokumentasi' => $path,
-        ]);
+            'dokumentasi' => $path
+        ]));
 
-        return redirect()->back()->with('message', 'Jurnal berhasil disimpan!');
+        return redirect()->back()->with('message', 'Entri jurnal lengkap berhasil disimpan!');
+    }
+
+    public function destroy($id)
+    {
+        $jurnal = Jurnal::findOrFail($id);
+        // Hapus file jika ada
+        if ($jurnal->dokumentasi && file_exists(public_path('storage/'.$jurnal->dokumentasi))) {
+            unlink(public_path('storage/'.$jurnal->dokumentasi));
+        }
+        $jurnal->delete();
+
+        return redirect()->back()->with('message', 'Jurnal berhasil dihapus.');
     }
 }

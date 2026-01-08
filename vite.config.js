@@ -26,19 +26,20 @@ export default defineConfig({
                 start_url: '/dashboard', // Saat dibuka langsung ke dashboard
                 icons: [
                     {
-                        src: '/images/icons/logosisabar.png', // Fallback icon (jika Anda malas resize)
+                        src: '/images/icons/logosisabar.png',
                         sizes: '512x512',
                         type: 'image/png',
-                        purpose: 'any maskable' // Penting agar icon full di Android
+                        purpose: 'any maskable'
                     },
                     {
-                        src: '/images/icons/icon-192x192.png',
+                        src: '/images/icons/logosisabar.png',
                         sizes: '192x192',
                         type: 'image/png'
                     },
                     {
-                        src: '/images/icons/icon-512x512.png',
+                        src: '/images/icons/logosisabar.png',
                         sizes: '512x512',
+
                         type: 'image/png'
                     }
                 ]

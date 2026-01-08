@@ -17,9 +17,7 @@ class DatabaseSeeder extends Seeder
         // 1. Jalankan RoleSeeder dulu (PENTING)
         $this->call(RoleSeeder::class);
 
-        // ---------------------------------------------------------
-        // 2. BUAT AKUN SUPER ADMIN
-        // ---------------------------------------------------------
+
         $admin = User::create([
             'name' => 'Administrator',
             'username' => 'admin',

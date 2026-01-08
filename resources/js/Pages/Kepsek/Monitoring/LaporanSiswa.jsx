@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { GraduationCap, Filter, Printer, Search } from 'lucide-react';
+import { GraduationCap, Filter, Printer, Search, UserCheck, UserX, AlertCircle } from 'lucide-react';
 
 export default function LaporanSiswa({ auth, laporan, kelas_list, filters }) {
     const [kelasId, setKelasId] = useState(filters.kelas_id || '');
@@ -16,7 +16,7 @@ export default function LaporanSiswa({ auth, laporan, kelas_list, filters }) {
         }, { preserveState: true });
     };
 
-    // URL untuk print PDF (menggunakan fitur export yang sudah ada)
+    // URL untuk print PDF
     const printUrl = route('export.absensi-murid', {
         kelas_id: kelasId || (kelas_list[0] ? kelas_list[0].id : 0),
         month: month,
@@ -73,23 +73,54 @@ export default function LaporanSiswa({ auth, laporan, kelas_list, filters }) {
                         <div className="flex flex-col justify-end">
                             <button
                                 onClick={handleFilter}
-                                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition"
+                                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition shadow-lg shadow-orange-200 dark:shadow-none"
                             >
-                                <Filter className="w-4 h-4" /> Filter
+                                <Filter className="w-4 h-4" /> Tampilkan
                             </button>
                         </div>
                     </div>
 
-                    {/* TOMBOL PRINT (Hanya muncul jika kelas dipilih karena PDF butuh ID kelas spesifik) */}
+                    {/* TOMBOL PRINT */}
                     {kelasId && (
                         <a
                             href={printUrl}
                             target="_blank"
-                            className="bg-gray-800 dark:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-900 transition"
+                            className="bg-gray-800 dark:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-900 transition shadow-lg"
                         >
-                            <Printer className="w-4 h-4" /> Cetak PDF
+                            <Printer className="w-4 h-4" /> Cetak Laporan
                         </a>
                     )}
+                </div>
+
+                {/* INFO RINGKASAN */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border-l-4 border-green-500 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase font-bold">Total Hadir</p>
+                            <p className="text-xl font-bold text-gray-800 dark:text-white">
+                                {laporan.reduce((acc, curr) => acc + (curr.h || 0), 0)}
+                            </p>
+                        </div>
+                        <UserCheck className="w-8 h-8 text-green-100" />
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border-l-4 border-red-500 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase font-bold">Total Alpa</p>
+                            <p className="text-xl font-bold text-gray-800 dark:text-white">
+                                {laporan.reduce((acc, curr) => acc + (curr.a || 0), 0)}
+                            </p>
+                        </div>
+                        <UserX className="w-8 h-8 text-red-100" />
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase font-bold">Total Izin/Sakit</p>
+                            <p className="text-xl font-bold text-gray-800 dark:text-white">
+                                {laporan.reduce((acc, curr) => acc + (curr.i || 0) + (curr.s || 0), 0)}
+                            </p>
+                        </div>
+                        <AlertCircle className="w-8 h-8 text-blue-100" />
+                    </div>
                 </div>
 
                 {/* TABEL DATA */}
@@ -114,38 +145,54 @@ export default function LaporanSiswa({ auth, laporan, kelas_list, filters }) {
                                         <td colSpan="8" className="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
                                             <div className="flex flex-col items-center">
                                                 <GraduationCap className="w-12 h-12 text-gray-300 mb-2" />
-                                                <p>Tidak ada data siswa yang ditemukan.</p>
+                                                <p>Tidak ada data siswa yang ditemukan untuk periode ini.</p>
                                             </div>
                                         </td>
                                     </tr>
                                 ) : (
                                     laporan.map((siswa, index) => {
-                                        // Hitung persentase sederhana (Asumsi 20 hari efektif, atau total pertemuan)
-                                        const totalHadir = siswa.h;
-                                        const percentage = Math.min(100, Math.round((totalHadir / 20) * 100));
+                                        // Gunakan nilai default 0 jika undefined/null
+                                        const h = siswa.h || 0;
+                                        const s = siswa.s || 0;
+                                        const i = siswa.i || 0;
+                                        const a = siswa.a || 0;
+
+                                        // Hitung total pertemuan yang seharusnya dihadiri
+                                        const totalPertemuan = h + s + i + a;
+
+                                        // Hitung persentase (Hadir / Total Pertemuan)
+                                        // Jika total 0, maka persentase 0 (hindari division by zero)
+                                        const percentage = totalPertemuan > 0
+                                            ? Math.round((h / totalPertemuan) * 100)
+                                            : 0;
+
+                                        // Warna progress bar dinamis
+                                        let progressColor = 'bg-green-500';
+                                        if (percentage < 50) progressColor = 'bg-red-500';
+                                        else if (percentage < 80) progressColor = 'bg-yellow-500';
 
                                         return (
                                             <tr key={siswa.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
                                                 <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm font-mono">{index + 1}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
                                                     {siswa.nama}
-                                                    <div className="text-xs text-gray-400 font-normal">{siswa.nis}</div>
+                                                    <div className="text-xs text-gray-400 font-normal">{siswa.nis || '-'}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                                                     <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
-                                                        {siswa.kelas}
+                                                        {siswa.kelas || '-'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-center font-bold text-green-600 dark:text-green-400">{siswa.h}</td>
-                                                <td className="px-6 py-4 text-center font-bold text-blue-600 dark:text-blue-400">{siswa.s}</td>
-                                                <td className="px-6 py-4 text-center font-bold text-purple-600 dark:text-purple-400">{siswa.i}</td>
-                                                <td className="px-6 py-4 text-center font-bold text-red-600 dark:text-red-400">{siswa.a}</td>
+                                                <td className="px-6 py-4 text-center font-bold text-green-600 dark:text-green-400">{h}</td>
+                                                <td className="px-6 py-4 text-center font-bold text-blue-600 dark:text-blue-400">{s}</td>
+                                                <td className="px-6 py-4 text-center font-bold text-purple-600 dark:text-purple-400">{i}</td>
+                                                <td className="px-6 py-4 text-center font-bold text-red-600 dark:text-red-400">{a}</td>
                                                 <td className="px-6 py-4 text-center">
-                                                    <div className="flex items-center justify-center gap-2">
+                                                    <div className="flex items-center justify-center gap-2" title={`Total Pertemuan: ${totalPertemuan}`}>
                                                         <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                                            <div className="h-full bg-green-500" style={{ width: `${percentage}%` }}></div>
+                                                            <div className={`h-full ${progressColor} transition-all duration-500`} style={{ width: `${percentage}%` }}></div>
                                                         </div>
-                                                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{percentage}%</span>
+                                                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300 w-8 text-right">{percentage}%</span>
                                                     </div>
                                                 </td>
                                             </tr>

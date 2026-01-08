@@ -21,7 +21,7 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
         <meta name="apple-mobile-web-app-title" content="Jurnal Guru">
-        <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
+        <link rel="apple-touch-icon" href="/images/icons/logosisabar.png">
 
         <!-- Script Auto Reload saat Update (Opsional tapi bagus) -->
         <script>
@@ -32,8 +32,8 @@
             }
         </script>
         <!-- PWA Icons -->
-    <link rel="apple-touch-icon" href="/images/icons/icons.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/images/icons/icons.png">
+    <link rel="apple-touch-icon" href="/images/icons/logosisabar.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/images/icons/logosibar.png">
     </head>
     <body class="font-sans antialiased">
         @inertia

@@ -25,10 +25,9 @@ export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
         setShowModal(true);
     };
 
-    // Fungsi tutup modal
+    // Fungsi tutup modal dengan animasi smooth
     const closeDetail = () => {
         setShowModal(false);
-        // Delay sedikit agar animasi smooth sebelum data dihapus
         setTimeout(() => setSelectedJurnal(null), 300);
     };
 
@@ -36,12 +35,12 @@ export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
         <AuthenticatedLayout user={auth.user} header="Monitoring Jurnal Mengajar">
             <Head title="Monitoring Jurnal" />
 
-            {/* CSS Print Helper */}
+            {/* CSS Print Helper (Updated for Scrolling Fix) */}
             <style>{`
                 @media print {
                     body * { visibility: hidden; }
                     #printable-area, #printable-area * { visibility: visible; }
-                    #printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; color: black; }
+                    #printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; color: black; overflow: visible !important; height: auto !important; }
                     .no-print { display: none !important; }
                 }
             `}</style>
@@ -156,15 +155,15 @@ export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
                     </div>
                 </div>
 
-                {/* --- MODAL DETAIL JURNAL (SUPERVISI) --- */}
+                {/* --- MODAL DETAIL JURNAL (FIXED SCROLLING) --- */}
                 {showModal && selectedJurnal && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
-                        <div className="bg-white w-full max-w-4xl min-h-screen md:min-h-0 md:rounded-xl shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-200">
+                    <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
+                        {/* PERBAIKAN: Gunakan flex-col dan max-h untuk scroll internal pada konten saja */}
+                        <div className="bg-white w-full max-w-4xl h-full md:h-auto md:max-h-[95vh] md:rounded-xl shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-200">
 
-                            {/* Toolbar Modal (Header) */}
-                            <div className="p-4 border-b flex justify-between items-center bg-gray-50 no-print rounded-t-xl sticky top-0 z-10 shadow-sm">
+                            {/* Toolbar Modal (Header) - Flex Shrink 0 agar tidak gepeng */}
+                            <div className="p-4 border-b flex justify-between items-center bg-gray-50 no-print rounded-t-xl sticky top-0 z-10 shadow-sm flex-shrink-0">
                                 <div className="flex items-center gap-3">
-                                    {/* TOMBOL KEMBALI BESAR DI HEADER */}
                                     <button
                                         onClick={closeDetail}
                                         className="p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full transition flex items-center justify-center"
@@ -193,7 +192,7 @@ export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
                                 </div>
                             </div>
 
-                            {/* KONTEN DETAIL (Bisa Dicetak) */}
+                            {/* KONTEN DETAIL (SCROLLABLE AREA) */}
                             <div id="printable-area" className="p-8 md:p-10 font-serif text-black leading-relaxed bg-white flex-1 overflow-y-auto">
                                 {/* Kop Surat Sederhana */}
                                 <div className="text-center border-b-2 border-black pb-4 mb-6">
@@ -293,8 +292,8 @@ export default function MonitoringJurnal({ auth, jurnals, filterDate }) {
                                 </div>
                             </div>
 
-                            {/* Footer Modal dengan Tombol Kembali Besar */}
-                            <div className="p-4 border-t bg-gray-50 no-print rounded-b-xl flex justify-center">
+                            {/* Footer Modal (Fixed Button) */}
+                            <div className="p-4 border-t bg-gray-50 no-print rounded-b-xl flex justify-center flex-shrink-0">
                                 <button
                                     onClick={closeDetail}
                                     className="w-full md:w-auto px-8 py-3 bg-gray-800 text-white rounded-lg font-bold hover:bg-gray-900 transition shadow-lg flex items-center justify-center gap-2"

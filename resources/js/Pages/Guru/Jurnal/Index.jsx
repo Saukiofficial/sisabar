@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import {
     Book, Plus, Search, Trash2, Printer,
-    Clock, CheckCircle, X, FileText
+    Clock, CheckCircle, X, FileText, ArrowLeft
 } from 'lucide-react';
 
 export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
@@ -46,6 +46,12 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
         window.print();
     };
 
+    const closePrintPreview = () => {
+        setShowPrintModal(false);
+        // Delay sedikit agar animasi smooth
+        setTimeout(() => setSelectedJurnal(null), 300);
+    }
+
     // Filter Data
     const filteredJurnals = jurnals.data.filter(j =>
         j.materi.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,7 +67,7 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                 @media print {
                     body * { visibility: hidden; }
                     #printable-content, #printable-content * { visibility: visible; }
-                    #printable-content { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; color: black; }
+                    #printable-content { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; color: black; overflow: visible !important; height: auto !important; }
                     .no-print { display: none !important; }
                     /* Paksa background color tercetak (untuk header tabel dll) */
                     -webkit-print-color-adjust: exact;
@@ -95,7 +101,7 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
 
                 {/* --- PAGE: BERANDA --- */}
                 {activeTab === 'beranda' && (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-10 text-center no-print">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-10 text-center no-print animate-in fade-in zoom-in duration-300">
                         <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">Selamat Datang, {auth.user.name}</h1>
                         <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
                             Catat kegiatan mengajar Anda secara digital. Data tersimpan aman dan siap dicetak kapan saja untuk laporan administrasi.
@@ -108,7 +114,8 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
 
                 {/* --- PAGE: DAFTAR JURNAL --- */}
                 {activeTab === 'data' && (
-                    <div className="space-y-6 no-print">
+                    <div className="space-y-6 no-print animate-in slide-in-from-right duration-300">
+
                         {/* Filter Bar */}
                         <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
                             <div className="relative w-full md:w-96">
@@ -180,10 +187,11 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                 {/* --- MODAL FORM (INPUT JURNAL) --- */}
                 {showModal && (
                     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+                        {/* PERBAIKAN: Gunakan flex-col dan max-h untuk scroll internal */}
                         <div className="bg-white dark:bg-gray-800 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col max-h-[95vh]">
-                            <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 rounded-t-2xl">
-                                <h3 className="text-xl font-bold">Form Jurnal Mengajar</h3>
-                                <button onClick={() => setShowModal(false)}><X className="w-6 h-6 text-gray-400" /></button>
+                            <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 rounded-t-2xl flex-shrink-0">
+                                <h3 className="text-xl font-bold text-gray-800 dark:text-white">Form Jurnal Mengajar</h3>
+                                <button onClick={() => setShowModal(false)}><X className="w-6 h-6 text-gray-400 hover:text-red-500" /></button>
                             </div>
                             <div className="p-6 overflow-y-auto flex-1">
                                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -348,28 +356,38 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                 {/* --- MODAL PREVIEW CETAK (DETAIL) --- */}
                 {showPrintModal && selectedJurnal && (
                     <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
-                        <div className="bg-white w-full max-w-4xl min-h-screen md:min-h-0 md:rounded-lg shadow-2xl flex flex-col relative">
+                        {/* PERBAIKAN: Tinggi modal tetap (tidak min-h-screen) untuk scroll internal */}
+                        <div className="bg-white w-full max-w-4xl h-full md:h-auto md:max-h-[95vh] md:rounded-lg shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
 
-                            {/* Tombol Aksi (Tidak Tercetak) */}
-                            <div className="p-4 border-b flex justify-between items-center bg-gray-100 no-print rounded-t-lg">
-                                <h3 className="font-bold text-gray-700">Preview Cetak</h3>
+                            {/* Tombol Aksi (Tidak Tercetak) - Flex-shrink-0 agar tidak mengecil */}
+                            <div className="p-4 border-b flex justify-between items-center bg-gray-100 no-print rounded-t-lg flex-shrink-0 shadow-sm">
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={closePrintPreview}
+                                        className="p-2 bg-gray-200 hover:bg-gray-300 rounded-full transition"
+                                        title="Kembali"
+                                    >
+                                        <ArrowLeft className="w-5 h-5 text-gray-700" />
+                                    </button>
+                                    <h3 className="font-bold text-gray-700">Preview Cetak</h3>
+                                </div>
                                 <div className="flex gap-2">
-                                    <button onClick={handlePrint} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700">
+                                    <button onClick={handlePrint} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 shadow-md">
                                         <Printer className="w-4 h-4" /> Cetak / PDF
                                     </button>
-                                    <button onClick={() => setShowPrintModal(false)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300">
+                                    <button onClick={closePrintPreview} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300">
                                         Tutup
                                     </button>
                                 </div>
                             </div>
 
-                            {/* AREA KERTAS (YANG AKAN DICETAK) */}
-                            <div id="printable-content" className="p-10 font-serif text-black leading-relaxed">
+                            {/* AREA KERTAS (YANG AKAN DICETAK) - Scroll di sini */}
+                            <div id="printable-content" className="p-10 font-serif text-black leading-relaxed flex-1 overflow-y-auto">
                                 {/* Header Surat */}
                                 <div className="text-center border-b-2 border-black pb-4 mb-6">
                                     <h2 className="text-xl font-bold uppercase tracking-wider mb-1">JURNAL MENGAJAR HARIAN</h2>
-                                    <h3 className="text-lg font-bold uppercase">MA SYEKH ABDURRAHMAN PAMEKASAN</h3>
-                                    <p className="text-sm">Semester {selectedJurnal.semester || 'Ganjil'} | Tahun Ajaran {new Date().getFullYear()}/{new Date().getFullYear()+1}</p>
+                                    <h3 className="text-lg font-bold uppercase">MA SYEKH ABDURRAHMAN</h3>
+                                    <p className="text-sm mt-2">Semester {selectedJurnal.semester || 'Ganjil'} | Tahun Ajaran {new Date().getFullYear()}/{new Date().getFullYear()+1}</p>
                                 </div>
 
                                 {/* Tabel Info */}
@@ -463,6 +481,17 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Footer Modal dengan Tombol Kembali Besar */}
+                            <div className="p-4 border-t bg-gray-50 no-print rounded-b-lg flex justify-center flex-shrink-0">
+                                <button
+                                    onClick={closePrintPreview}
+                                    className="w-full md:w-auto px-8 py-3 bg-gray-800 text-white rounded-lg font-bold hover:bg-gray-900 transition shadow-lg flex items-center justify-center gap-2"
+                                >
+                                    <ArrowLeft className="w-5 h-5" /> Kembali ke Daftar
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 )}

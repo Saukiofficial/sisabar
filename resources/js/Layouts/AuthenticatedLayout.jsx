@@ -106,7 +106,7 @@ export default function Authenticated({ user, header, children }) {
                     <Link href="/">
                         <ApplicationLogo className="block h-9 w-auto fill-current text-blue-600 dark:text-white" />
                     </Link>
-                    <span className="ml-2 font-bold text-lg text-gray-800 dark:text-white">SI SABAR</span>
+                    <span className="ml-2 font-bold text-lg text-gray-800 dark:text-white">E- NGAJER</span>
                 </div>
 
                 <div className="flex-1 overflow-y-auto py-4">
@@ -158,7 +158,7 @@ export default function Authenticated({ user, header, children }) {
                         <Link href="/">
                             <ApplicationLogo className="block h-8 w-auto fill-current text-blue-600 dark:text-white" />
                         </Link>
-                        <span className="font-bold text-gray-800 dark:text-white">SI SABAR</span>
+                        <span className="font-bold text-gray-800 dark:text-white">E-NGAJER</span>
                     </div>
 
                     {/* Desktop Title */}

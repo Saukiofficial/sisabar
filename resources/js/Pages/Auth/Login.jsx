@@ -22,7 +22,7 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <>
-            <Head title="Log in - SI SABAR" />
+            <Head title="Log in - E- NGAJER" />
 
             <div className="min-h-screen bg-gradient-to-br from-emerald-800 via-teal-700 to-emerald-900 flex items-center justify-center p-4 relative overflow-hidden">
                 {/* Decorative Circles */}
@@ -42,7 +42,7 @@ export default function Login({ status, canResetPassword }) {
                                     className="w-16 h-16 object-contain"
                                 />
                                 <div>
-                                    <h1 className="text-xl font-bold text-teal-800">SI SABAR</h1>
+                                    <h1 className="text-xl font-bold text-teal-800">E- NGAJER</h1>
                                     <p className="text-xs text-teal-600">Sistem Informasi Santri Belajar</p>
                                 </div>
                             </div>
@@ -74,7 +74,7 @@ export default function Login({ status, canResetPassword }) {
                         {/* Bottom Text */}
                         <div className="absolute bottom-8 left-8 right-8 text-center">
                             <p className="text-sm text-teal-700">
-                                © 2026 SI SABAR. All rights reserved.
+                                © 2026 E- NGAJER. All rights reserved.
                             </p>
                             <p className="text-xs text-teal-600 mt-1">Powered by kyysolutions</p>
                         </div>
@@ -87,7 +87,7 @@ export default function Login({ status, canResetPassword }) {
                             <div className="lg:hidden flex justify-center mb-8">
                                 <img
                                     src="/images/icons/logosisabar.png"
-                                    alt="SI SABAR Logo"
+                                    alt="E- NGAJER Logo"
                                     className="w-24 h-24 object-contain drop-shadow-xl"
                                 />
                             </div>

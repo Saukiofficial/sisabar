@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Siswa;
 use App\Models\Guru;
-use App\Models\Absensi;
-use App\Models\User; // Pastikan Model User di-import
+// [PERBAIKAN] Gunakan model spesifik sesuai tabel yang ada di database
+use App\Models\AbsensiMurid;
+use App\Models\AbsensiGuru;
+use App\Models\User;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
@@ -26,20 +28,14 @@ class AbsensiGateController extends Controller
     {
         // 1. Validasi Input
         $request->validate(['qr_code' => 'required']);
-        $kode = trim($request->qr_code); // Bersihkan spasi
+        $kode = trim($request->qr_code);
 
-        // DEBUG: Catat apa yang discan
+        // DEBUG: Catat apa yang discan ke file log
         Log::info("SCANNER MENERIMA DATA: " . $kode);
 
-        // --- PENGECEKAN KHUSUS ERROR "NO NIP" ---
-        // Ini menangkap kasus QR Code yang salah cetak karena NIP kosong
-        if (strtoupper($kode) === 'NO NIP' || strtoupper($kode) === 'NONIP') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'QR Code Salah Cetak! Isinya "No NIP". Harap cetak ulang QR menggunakan Username atau Nama.',
-                'debug_code' => $kode
-            ], 404);
-        }
+        // --- HAPUS BLOKIR "NO NIP" JIKA INGIN DICOBA CARI ---
+        // Jika QR Code berisi "No NIP", sistem akan tetap mencoba mencari user dengan username "No NIP"
+        // (siapa tahu Anda mengganti username guru tersebut menjadi "No NIP" di database sementara)
 
         $hariIni = Carbon::today();
         $jamSekarang = Carbon::now('Asia/Jakarta');
@@ -69,10 +65,10 @@ class AbsensiGateController extends Controller
         // TAHAP 2: CEK GURU (Logika Multi-Fallback Lengkap)
         // ---------------------------------------------------------
         else {
-            // Cari User berdasarkan berbagai kemungkinan kolom
+            // Cari User berdasarkan berbagai kemungkinan kolom (Username, Email, Nama)
             $userQuery = User::where('username', $kode)
                              ->orWhere('email', $kode)
-                             ->orWhere('name', $kode); // [BARU] Cari berdasarkan Nama (misal: "Pak Fhadol, S.Pd")
+                             ->orWhere('name', $kode); // Cari berdasarkan Nama
 
             // Jika kode angka, cari ID
             if (is_numeric($kode)) {
@@ -102,6 +98,16 @@ class AbsensiGateController extends Controller
         // ---------------------------------------------------------
         if (!$userId) {
             Log::warning("GAGAL MENEMUKAN USER: " . $kode);
+
+            // Pesan Error Spesifik jika kodenya "No NIP"
+            if (strtoupper($kode) === 'NO NIP' || strtoupper($kode) === 'NONIP') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'QR Code Salah Cetak! Isinya "No NIP". Harap cetak ulang QR menggunakan Username atau Nama.',
+                    'debug_code' => $kode
+                ], 404);
+            }
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'QR Code tidak terdaftar di sistem!',
@@ -112,9 +118,18 @@ class AbsensiGateController extends Controller
         Log::info("USER DITEMUKAN: " . ($dataUser->user->name ?? 'User') . " ($userType)");
 
         // ---------------------------------------------------------
-        // TAHAP 4: PROSES ABSENSI
+        // TAHAP 4: PROSES ABSENSI (MASUK / PULANG)
         // ---------------------------------------------------------
-        $absensi = Absensi::where('user_id', $userId)
+
+        // [PERBAIKAN] Tentukan Model mana yang dipakai berdasarkan User Type
+        if ($userType === 'Siswa') {
+            $modelAbsensi = new AbsensiMurid();
+        } else {
+            $modelAbsensi = new AbsensiGuru();
+        }
+
+        // Cari data absen hari ini untuk user tersebut di tabel yang sesuai
+        $absensi = $modelAbsensi->where('user_id', $userId)
             ->whereDate('tanggal', $hariIni)
             ->first();
 
@@ -124,13 +139,25 @@ class AbsensiGateController extends Controller
             $status = $jamSekarang->greaterThan($batasMasuk) ? 'Terlambat' : 'Hadir';
             $keterangan = $status == 'Terlambat' ? 'Terlambat (' . $jamSekarang->format('H:i') . ')' : 'Tepat Waktu';
 
-            Absensi::create([
+            // Siapkan data untuk disimpan
+            $dataToSave = [
                 'user_id' => $userId,
                 'tanggal' => $hariIni,
                 'waktu_masuk' => $jamSekarang->toTimeString(),
                 'status' => $status,
-                'keterangan' => $keterangan
-            ]);
+                // Keterangan mungkin beda nama kolom di tabel guru vs murid, sesuaikan jika perlu
+                // Di sini diasumsikan sama-sama punya kolom 'keterangan' atau logic disimpan di model
+            ];
+
+            // Khusus Siswa: Simpan Keterangan
+            if ($userType === 'Siswa') {
+                $dataToSave['keterangan'] = $keterangan;
+                // Guru_id dan Kelas_id sudah dibuat nullable di migrasi, jadi aman dikosongkan
+            }
+            // Khusus Guru: Mungkin kolomnya beda, sesuaikan.
+            // Misalnya Guru tidak ada kolom 'keterangan' tapi cuma status.
+
+            $modelAbsensi->create($dataToSave);
 
             return response()->json([
                 'status' => 'success',
@@ -147,7 +174,11 @@ class AbsensiGateController extends Controller
         // [SKENARIO B: CHECK OUT]
         elseif ($absensi->waktu_pulang == null) {
             $waktuMasuk = Carbon::parse($absensi->waktu_masuk);
-            if ($jamSekarang->diffInMinutes($waktuMasuk) < 1) {
+
+            // Jeda waktu minimal antara masuk dan pulang (dalam menit)
+            $minJeda = 1;
+
+            if ($jamSekarang->diffInMinutes($waktuMasuk) < $minJeda) {
                 return response()->json([
                     'status' => 'warning',
                     'message' => 'Baru saja absen masuk. Tunggu sebentar.',

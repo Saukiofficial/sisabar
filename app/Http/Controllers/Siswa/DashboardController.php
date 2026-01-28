@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Siswa;
-use App\Models\Absensi;
+// [PERBAIKAN] Gunakan model yang benar sesuai tabel database Anda
+use App\Models\AbsensiMurid;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 
@@ -21,7 +22,7 @@ class DashboardController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // [PENTING] Ambil daftar role (array string) agar Sidebar muncul
+        // [PENTING] Ambil daftar role (array string) agar Sidebar AuthenticatedLayout muncul
         // Contoh hasil: ['Siswa']
         $roles = $user->roles->pluck('name');
 
@@ -42,9 +43,8 @@ class DashboardController extends Controller
             $tahunIni = Carbon::now()->year;
 
             try {
-                // Query dasar absensi bulan ini
-                // Pastikan tabel 'absensis' memiliki kolom 'user_id'
-                $queryAbsen = Absensi::where('user_id', $user->id)
+                // [PERBAIKAN] Query ke tabel absensi_murids yang benar
+                $queryAbsen = AbsensiMurid::where('user_id', $user->id)
                     ->whereMonth('tanggal', $bulanIni)
                     ->whereYear('tanggal', $tahunIni);
 
@@ -67,10 +67,10 @@ class DashboardController extends Controller
 
         // 4. Render ke View React
         return Inertia::render('Siswa/DashboardSiswa', [
-            // [FIX] Kirim struktur auth lengkap dengan roles
+            // [FIX] Kirim struktur auth lengkap dengan roles agar sidebar tidak hilang
             'auth' => [
                 'user' => $user,
-                'roles' => $roles // <--- INI KUNCINYA AGAR SIDEBAR MUNCUL
+                'roles' => $roles
             ],
             'siswa' => $siswa,
             'stats' => $stats,

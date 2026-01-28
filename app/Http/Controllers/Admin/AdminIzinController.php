@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Absensi;
+// GANTI MODEL
+use App\Models\AbsensiMurid;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Redirect;
 
@@ -15,21 +16,23 @@ class AdminIzinController extends Controller
      */
     public function index()
     {
-        // Ambil data Absensi yang jenisnya 'Sakit', 'Izin', atau 'Lainnya'
-        // Kita juga memuat relasi ke User -> Siswa -> Kelas untuk menampilkan identitas
-        $pengajuans = Absensi::with(['user.siswa.kelas'])
+        // Gunakan AbsensiMurid
+        // Load relasi user -> siswa -> kelas untuk detail info
+        // Pastikan model AbsensiMurid punya relasi 'user' atau 'siswa'
+        // Jika AbsensiMurid punya 'user_id', kita bisa load 'user.siswa.kelas'
+        $pengajuans = AbsensiMurid::with(['user.siswa.kelas'])
             ->whereIn('jenis', ['Sakit', 'Izin', 'Lainnya'])
-            ->orderBy('created_at', 'desc') // Yang terbaru di atas
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($item) {
                 return [
                     'id' => $item->id,
-                    'user' => $item->user, // Data user (nama, dll)
+                    'user' => $item->user,
                     'jenis' => $item->jenis,
                     'tanggal_mulai' => $item->tanggal_mulai,
                     'tanggal_selesai' => $item->tanggal_selesai,
                     'keterangan' => $item->keterangan,
-                    'status' => $item->status, // Menunggu Verifikasi, Disetujui, Ditolak
+                    'status' => $item->status,
                     'created_at' => $item->created_at->format('d M Y H:i'),
                 ];
             });
@@ -39,25 +42,19 @@ class AdminIzinController extends Controller
         ]);
     }
 
-    /**
-     * Memproses persetujuan atau penolakan izin
-     * URL: /admin/verifikasi-izin/{id}/{status}
-     */
     public function verifikasi($id, $status)
     {
-        // Validasi status hanya boleh 'Disetujui' atau 'Ditolak' untuk keamanan
         if (!in_array($status, ['Disetujui', 'Ditolak'])) {
             return Redirect::back()->with('error', 'Status tidak valid.');
         }
 
-        $pengajuan = Absensi::findOrFail($id);
+        // Gunakan AbsensiMurid
+        $pengajuan = AbsensiMurid::findOrFail($id);
 
-        // Update status di database
         $pengajuan->update([
             'status' => $status
         ]);
 
-        // Kirim pesan sukses
         $pesan = $status === 'Disetujui' ? 'Pengajuan berhasil disetujui.' : 'Pengajuan berhasil ditolak.';
 
         return Redirect::back()->with('success', $pesan);

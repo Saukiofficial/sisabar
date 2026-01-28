@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Absensi;
+// [PERBAIKAN] Gunakan AbsensiMurid karena tabel 'absensis' tidak ada
+use App\Models\AbsensiMurid;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -12,14 +13,14 @@ class RiwayatAbsensiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Absensi::with(['user.siswa.kelas', 'user.guru']) // Load relasi user -> siswa/guru
+        // [PERBAIKAN] Gunakan AbsensiMurid
+        $query = AbsensiMurid::with(['user.siswa.kelas']) // Load relasi yang tersedia
             ->latest();
 
         // Filter Tanggal (Default Hari Ini)
         if ($request->has('tanggal') && $request->tanggal != '') {
             $query->whereDate('tanggal', $request->tanggal);
         } else {
-            // Default tampilkan hari ini agar tidak berat load semua
             $query->whereDate('tanggal', Carbon::today());
         }
 

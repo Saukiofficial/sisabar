@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use App\Models\Absensi;
+// [PERBAIKAN] Gunakan model yang benar
+use App\Models\AbsensiMurid;
 use Carbon\Carbon;
 
 class IzinController extends Controller
@@ -19,18 +20,16 @@ class IzinController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // [PENTING] Ambil Roles agar Sidebar AuthenticatedLayout muncul
-        // Kita gunakan pluck('name') karena logic di AuthenticatedLayout mengecek array string
+        // Ambil Roles agar Sidebar muncul
         $roles = $user->roles->pluck('name');
 
-        // Ambil riwayat pengajuan izin milik siswa
-        $history = Absensi::where('user_id', $user->id)
+        // [PERBAIKAN] Gunakan AbsensiMurid
+        $history = AbsensiMurid::where('user_id', $user->id)
             ->whereIn('jenis', ['Sakit', 'Izin', 'Lainnya'])
             ->orderBy('created_at', 'desc')
             ->get();
 
         return Inertia::render('Siswa/PengajuanIzin', [
-            // Kirim struktur auth lengkap dengan roles agar Sidebar tidak hilang
             'auth' => [
                 'user' => $user,
                 'roles' => $roles
@@ -54,15 +53,16 @@ class IzinController extends Controller
         $user = Auth::user();
         $now = Carbon::now('Asia/Jakarta');
 
-        Absensi::create([
+        // [PERBAIKAN] Gunakan AbsensiMurid
+        AbsensiMurid::create([
             'user_id' => $user->id,
             'jenis' => $request->jenis,
             'tanggal_mulai' => $request->tanggal_mulai,
             'tanggal_selesai' => $request->tanggal_selesai,
             'keterangan' => $request->keterangan,
             'status' => 'Menunggu Verifikasi',
-            // Kita isi kolom 'tanggal' dengan hari ini agar kompatibel dengan struktur tabel lama
-            'tanggal' => $now->format('Y-m-d'),
+            // Isi kolom 'tanggal' dengan hari pertama izin agar kompatibel dengan rekap harian
+            'tanggal' => $request->tanggal_mulai,
             'created_at' => $now,
             'updated_at' => $now,
         ]);

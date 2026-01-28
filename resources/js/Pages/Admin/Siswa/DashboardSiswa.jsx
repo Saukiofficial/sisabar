@@ -1,148 +1,126 @@
+import React from 'react';
+// [PERBAIKAN 1] Gunakan alias @/ untuk path yang benar di project Laravel Vite
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
-import { GraduationCap, Clock, AlertCircle, CheckCircle, Calendar, User } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+// [PERBAIKAN 2] Gabungkan semua import lucide-react, hapus duplikat AlertCircle
+import {
+    Calendar,
+    ClipboardList,
+    Award,
+    BookOpen,
+    Clock,
+    ArrowRight,
+    XCircle,
+    AlertCircle
+} from 'lucide-react';
 
-export default function DashboardSiswa({ auth, siswa, stats, tanggal_hari_ini }) {
-
-    // Helper untuk kartu statistik
-    const StatCard = ({ title, value, icon: Icon, colorClass, bgClass }) => (
-        <div className={`p-4 rounded-xl shadow-sm border ${bgClass} border-opacity-50 flex items-center justify-between`}>
-            <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-                <p className={`text-2xl font-bold mt-1 ${colorClass}`}>{value}</p>
-            </div>
-            <div className={`p-3 rounded-full ${colorClass} bg-opacity-10`}>
-                <Icon size={24} className={colorClass} />
-            </div>
-        </div>
-    );
-
+export default function DashboardSiswa({ auth }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200">Dashboard Siswa</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Dashboard Siswa</h2>}
         >
             <Head title="Dashboard Siswa" />
 
-            <div className="py-2">
+            <div className="py-6 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                {/* 1. WELCOME BANNER */}
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg mb-6 relative overflow-hidden">
+                {/* --- WELCOME BANNER --- */}
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-8 text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <h3 className="text-2xl font-bold mb-1">Halo, {siswa?.nama || auth.user.name}! 👋</h3>
-                        <p className="text-blue-100 opacity-90">
-                            Selamat datang di Smart Class System. Jangan lupa cek jadwal ujian ya!
+                        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Halo, {auth.user.name}! 👋</h1>
+                        <p className="text-blue-100 text-base sm:text-lg max-w-xl">
+                            Selamat datang di panel belajar. Siapkan dirimu untuk ujian hari ini atau cek hasil belajarmu sebelumnya.
                         </p>
-                        <div className="mt-4 inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-lg backdrop-blur-sm text-sm">
-                            <Calendar size={16} />
-                            <span>{tanggal_hari_ini}</span>
-                        </div>
                     </div>
                     {/* Hiasan Background */}
-                    <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10">
-                        <GraduationCap size={180} />
-                    </div>
+                    <div className="absolute right-0 top-0 h-full w-1/3 bg-white opacity-5 transform skew-x-12"></div>
+                    <div className="absolute right-10 bottom-0 h-24 w-24 bg-yellow-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+                    <div className="absolute right-20 top-0 h-24 w-24 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
                 </div>
 
-                {/* 2. STATISTIK KEHADIRAN (Dari Scan Gerbang) */}
-                <div className="mb-6">
-                    <h4 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                        <Clock className="text-blue-500" />
-                        Statistik Kehadiran Bulan Ini
-                    </h4>
+                {/* --- MENU GRID --- */}
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <StatCard
-                            title="Hadir"
-                            value={stats?.hadir || 0}
-                            icon={CheckCircle}
-                            colorClass="text-green-600"
-                            bgClass="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                        />
-                        <StatCard
-                            title="Terlambat"
-                            value={stats?.terlambat || 0}
-                            icon={Clock}
-                            colorClass="text-yellow-600"
-                            bgClass="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
-                        />
-                        <StatCard
-                            title="Alpha/Bolos"
-                            value={stats?.alpha || 0}
-                            icon={XCircle}
-                            colorClass="text-red-600"
-                            bgClass="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                        />
-                        <StatCard
-                            title="Persentase"
-                            value={`${stats?.persentase_kehadiran || 0}%`}
-                            icon={GraduationCap}
-                            colorClass="text-blue-600"
-                            bgClass="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                        />
-                    </div>
-                </div>
+                    {/* CARD 1: JADWAL UJIAN */}
+                    <Link
+                        href={route('siswa.ujian.index')}
+                        className="group bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <Calendar size={60} className="sm:w-[100px] sm:h-[100px] text-blue-600 dark:text-blue-400" />
+                        </div>
 
-                {/* 3. INFO SISWA & KELAS */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Kartu Identitas */}
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                        <h4 className="font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 border-gray-100 dark:border-gray-700">
-                            Identitas Saya
-                        </h4>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500">
-                                    {auth.user.avatar ? (
-                                        <img src={`/storage/${auth.user.avatar}`} className="w-full h-full rounded-full object-cover" />
-                                    ) : (
-                                        <User size={24} />
-                                    )}
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Nama Lengkap</p>
-                                    <p className="font-semibold text-gray-800 dark:text-white">{siswa?.nama}</p>
-                                </div>
+                        <div className="relative z-10">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                                <Calendar size={20} className="sm:w-6 sm:h-6" />
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">NIS / Username</p>
-                                <p className="font-mono font-semibold text-gray-800 dark:text-white">{siswa?.nis}</p>
+                            <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">Jadwal Ujian</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                                Lihat jadwal ujian yang akan datang dan mulai kerjakan soal.
+                            </p>
+                            <span className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold text-xs sm:text-sm group-hover:translate-x-2 transition-transform">
+                                Buka Jadwal <ArrowRight size={14} className="sm:w-4 sm:h-4 ml-1" />
+                            </span>
+                        </div>
+                    </Link>
+
+                    {/* CARD 2: LEMBAR LATIHAN (Opsional/Placeholder) */}
+                    <div className="group bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-700 hover:border-orange-400 dark:hover:border-orange-500 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <ClipboardList size={60} className="sm:w-[100px] sm:h-[100px] text-orange-600 dark:text-orange-400" />
+                        </div>
+
+                        <div className="relative z-10">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400 mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                                <BookOpen size={20} className="sm:w-6 sm:h-6" />
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Kelas</p>
-                                <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">
-                                    {siswa?.kelas?.nama_kelas || 'Belum Masuk Kelas'}
-                                </span>
-                            </div>
+                            <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">Materi & Tugas</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                                Akses materi pelajaran dan kumpulkan tugas harian di sini.
+                            </p>
+                            <span className="inline-flex items-center text-orange-600 dark:text-orange-400 font-semibold text-xs sm:text-sm group-hover:translate-x-2 transition-transform cursor-pointer">
+                                Lihat Materi <ArrowRight size={14} className="sm:w-4 sm:h-4 ml-1" />
+                            </span>
                         </div>
                     </div>
 
-                    {/* Pengumuman / Info Dummy */}
-                    <div className="md:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                        <h4 className="font-bold text-gray-800 dark:text-white mb-4 border-b pb-2 border-gray-100 dark:border-gray-700">
-                            Informasi Sekolah
-                        </h4>
-                        <div className="space-y-4">
-                            <div className="flex gap-3 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800">
-                                <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
-                                <div>
-                                    <h5 className="font-semibold text-blue-700 dark:text-blue-300 text-sm">Absensi Digital Aktif</h5>
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                                        Jangan lupa melakukan scan QR Code di gerbang saat datang dan pulang sekolah untuk mencatat kehadiran.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-100 dark:border-yellow-800">
-                                <Calendar className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
-                                <div>
-                                    <h5 className="font-semibold text-yellow-700 dark:text-yellow-300 text-sm">Persiapan Ujian Akhir</h5>
-                                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-                                        Pastikan kartu pelajar Anda siap dan NIS terdaftar untuk mengikuti ujian berbasis komputer.
-                                    </p>
-                                </div>
-                            </div>
+                    {/* CARD 3: RIWAYAT NILAI */}
+                    <Link
+                        href={route('siswa.nilai.index')}
+                        className="group bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-700 hover:border-green-400 dark:hover:border-green-500 relative overflow-hidden col-span-2 lg:col-span-1"
+                    >
+                        <div className="absolute top-0 right-0 p-2 sm:p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <Award size={60} className="sm:w-[100px] sm:h-[100px] text-green-600 dark:text-green-400" />
                         </div>
+
+                        <div className="relative z-10">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center text-green-600 dark:text-green-400 mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                                <Award size={20} className="sm:w-6 sm:h-6" />
+                            </div>
+                            <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">Riwayat Nilai</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                                Cek hasil ujian dan evaluasi perkembangan belajarmu.
+                            </p>
+                            <span className="inline-flex items-center text-green-600 dark:text-green-400 font-semibold text-xs sm:text-sm group-hover:translate-x-2 transition-transform">
+                                Lihat Hasil <ArrowRight size={14} className="sm:w-4 sm:h-4 ml-1" />
+                            </span>
+                        </div>
+                    </Link>
+
+                </div>
+
+                {/* --- INFO TAMBAHAN / WIDGET --- */}
+                <div className="mt-6 sm:mt-8 grid grid-cols-1">
+                    <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <h4 className="font-bold text-gray-800 dark:text-white mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base">
+                            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" /> Tips Ujian
+                        </h4>
+                        <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400 list-disc list-inside">
+                            <li>Pastikan koneksi internet stabil sebelum memulai ujian.</li>
+                            <li>Perhatikan durasi waktu yang tersedia.</li>
+                            <li>Jangan lupa berdoa sebelum mengerjakan soal.</li>
+                            <li>Jika terjadi kendala, segera hubungi Guru atau Pengawas.</li>
+                        </ul>
                     </div>
                 </div>
 
@@ -150,7 +128,3 @@ export default function DashboardSiswa({ auth, siswa, stats, tanggal_hari_ini })
         </AuthenticatedLayout>
     );
 }
-
-// Icon Import Helper (Agar tidak error XCircle undefined)
-import { XCircle } from 'lucide-react';
-import { AlertCircle } from 'lucide-react';

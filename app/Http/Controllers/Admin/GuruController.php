@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf; // [BARU] Import PDF Library
 
 class GuruController extends Controller
 {
@@ -95,5 +96,30 @@ class GuruController extends Controller
         // $guru->delete();
 
         return redirect()->back();
+    }
+
+    /**
+     * [BARU] Fitur Cetak Data Guru Perorangan (PDF)
+     */
+    public function cetak($id)
+    {
+        $guru = Guru::with(['user', 'mapel', 'kelas'])->findOrFail($id);
+
+        $data = [
+            'guru' => $guru,
+            'sekolah' => [
+                'nama' => 'SMA SMART CLASS',
+                'alamat' => 'Jl. Pendidikan No. 1, Kota Belajar',
+            ]
+        ];
+
+        // Pastikan Anda sudah membuat view 'pdf.cetak_guru' di folder resources/views/pdf/
+        // Jika belum ada, buat file blade tersebut.
+        $pdf = Pdf::loadView('pdf.cetak_guru', $data);
+
+        // Opsional: Set ukuran kertas (contoh: A4 portrait)
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Data-Guru-' . $guru->user->username . '.pdf');
     }
 }

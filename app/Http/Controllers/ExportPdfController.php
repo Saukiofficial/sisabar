@@ -15,15 +15,15 @@ use Illuminate\Support\Facades\Auth;
 
 class ExportPdfController extends Controller
 {
-    // 1. EXPORT JURNAL MENGAJAR
+
     public function jurnal(Request $request)
     {
-        // Default bulan ini jika tidak ada filter
+
         $month = $request->input('month', date('m'));
         $year = $request->input('year', date('Y'));
 
         $user = Auth::user();
-        // Cari profil guru dari user yang login
+
         $guru = Guru::where('user_id', $user->id)->first();
 
         if (!$guru) return abort(403, 'Akses Ditolak');

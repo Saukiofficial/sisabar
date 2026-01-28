@@ -23,6 +23,8 @@
     },
     "dependencies": {
         "html5-qrcode": "^2.3.8",
-        "lucide-react": "^0.554.0"
+        "lucide-react": "^0.554.0",
+        "qrcode.react": "^4.2.0",
+        "sweetalert2": "^11.26.17"
     }
 }

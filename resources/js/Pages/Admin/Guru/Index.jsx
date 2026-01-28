@@ -1,7 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Pencil, Trash2, Plus, UserPlus, X } from 'lucide-react';
+import { Pencil, Trash2, Plus, UserPlus, X, Printer, QrCode } from 'lucide-react'; // Tambah Icon QrCode
+import QrCodeModal from '@/Components/QrCodeModal'; // Import Modal QR
 
 export default function GuruIndex({ auth, gurus, mapels, kelas }) {
     // Setup Form dengan field lengkap
@@ -18,6 +19,10 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
     const [showModal, setShowModal] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
 
+    // --- STATE UNTUK QR CODE ---
+    const [showQrModal, setShowQrModal] = useState(false);
+    const [selectedGuru, setSelectedGuru] = useState(null);
+
     // --- LOGIC BUKA MODAL (ADD / EDIT) ---
     const openModal = (guru = null) => {
         setIsEdit(!!guru); // Jika ada data guru, berarti mode EDIT
@@ -28,7 +33,7 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
                 id: guru.id,
                 name: guru.user.name,       // Ambil dari relasi user
                 username: guru.user.username, // Ambil dari relasi user
-                password: '',               // Password kosongkan saja (biar gak keganti kalau gak diisi)
+                password: '',               // Password kosongkan saja
                 mapel_id: guru.mapel_id || '',
                 kelas_id: guru.kelas_id || '',
                 status_aktif: guru.status_aktif ? '1' : '0'
@@ -47,19 +52,19 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
         reset(); // Bersihkan form saat tutup
     };
 
+    // --- LOGIC BUKA QR CODE ---
+    const handleOpenQr = (guru) => {
+        setSelectedGuru(guru);
+        setShowQrModal(true);
+    };
+
     // --- LOGIC SUBMIT ---
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEdit) {
-            // Kirim ke Route Update (PUT)
-            put(route('gurus.update', data.id), {
-                onSuccess: () => closeModal()
-            });
+            put(route('gurus.update', data.id), { onSuccess: () => closeModal() });
         } else {
-            // Kirim ke Route Store (POST)
-            post(route('gurus.store'), {
-                onSuccess: () => closeModal()
-            });
+            post(route('gurus.store'), { onSuccess: () => closeModal() });
         }
     };
 
@@ -137,19 +142,42 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                                <div className="flex justify-center gap-3">
+                                                <div className="flex justify-center gap-2">
+
+                                                    {/* TOMBOL QR CODE (BARU) */}
+                                                    <button
+                                                        onClick={() => handleOpenQr(guru)}
+                                                        className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300 flex items-center gap-1 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                                                        title="Lihat QR Code"
+                                                    >
+                                                        <QrCode className="w-4 h-4" />
+                                                    </button>
+
+                                                    {/* TOMBOL CETAK BIODATA (TETAP ADA) */}
+                                                    <a
+                                                        href={route('gurus.cetak', guru.id)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1 p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition"
+                                                        title="Cetak Biodata"
+                                                    >
+                                                        <Printer className="w-4 h-4" />
+                                                    </a>
+
                                                     <button
                                                         onClick={() => openModal(guru)}
-                                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1"
+                                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition"
+                                                        title="Edit"
                                                     >
-                                                        <Pencil className="w-4 h-4" /> Edit
+                                                        <Pencil className="w-4 h-4" />
                                                     </button>
 
                                                     <button
                                                         onClick={() => handleDelete(guru.id)}
-                                                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1"
+                                                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1 p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition"
+                                                        title="Hapus"
                                                     >
-                                                        <Trash2 className="w-4 h-4" /> Hapus
+                                                        <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -177,11 +205,12 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{guru.user.email}</p>
                                     </div>
                                     <div>
-                                        {guru.status_aktif ? (
-                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Aktif</span>
-                                        ) : (
-                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Non-Aktif</span>
-                                        )}
+                                        <button
+                                            onClick={() => handleOpenQr(guru)}
+                                            className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg"
+                                        >
+                                            <QrCode size={20} />
+                                        </button>
                                     </div>
                                 </div>
 
@@ -193,37 +222,43 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
                                             {guru.user.username}
                                         </span>
                                     </div>
-
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="text-gray-500 dark:text-gray-400">Mapel Ajar:</span>
+                                        <span className="text-gray-500 dark:text-gray-400">Mapel:</span>
                                         {guru.mapel ? (
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                                {guru.mapel.nama_mapel}
-                                            </span>
-                                        ) : <span className="text-gray-400 dark:text-gray-500">-</span>}
+                                            <span className="text-purple-700 dark:text-purple-300 font-medium">{guru.mapel.nama_mapel}</span>
+                                        ) : '-'}
                                     </div>
-
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="text-gray-500 dark:text-gray-400">Wali Kelas:</span>
-                                        {guru.kelas ? (
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                                {guru.kelas.nama_kelas}
-                                            </span>
-                                        ) : <span className="text-gray-400 dark:text-gray-500">-</span>}
+                                        <span className="text-gray-500 dark:text-gray-400">Status:</span>
+                                        {guru.status_aktif ? (
+                                            <span className="text-green-600 font-bold">Aktif</span>
+                                        ) : (
+                                            <span className="text-red-600 font-bold">Non-Aktif</span>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Action Buttons */}
+                                {/* Action Buttons Mobile */}
                                 <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    {/* Tombol Cetak Biodata */}
+                                    <a
+                                        href={route('gurus.cetak', guru.id)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-medium"
+                                    >
+                                        <Printer className="w-3.5 h-3.5" /> PDF
+                                    </a>
+
                                     <button
                                         onClick={() => openModal(guru)}
-                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition text-xs font-medium"
+                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-medium"
                                     >
                                         <Pencil className="w-3.5 h-3.5" /> Edit
                                     </button>
                                     <button
                                         onClick={() => handleDelete(guru.id)}
-                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition text-xs font-medium"
+                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-xs font-medium"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" /> Hapus
                                     </button>
@@ -237,7 +272,6 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
                 {showModal && (
                     <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-3 md:p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg relative animate-fade-in-up">
-
                             {/* Modal Header */}
                             <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-t-xl">
                                 <h3 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100">
@@ -250,38 +284,33 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
 
                             {/* Modal Body */}
                             <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-3 md:space-y-4">
-                                {/* Nama */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Lengkap</label>
-                                    <input type="text" className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                    <input type="text" className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                                         value={data.name} onChange={e => setData('name', e.target.value)} required />
                                     {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
                                 </div>
-
-                                {/* Username & Password */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
-                                        <input type="text" className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg bg-gray-50 text-sm"
+                                        <input type="text" className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                                             value={data.username} onChange={e => setData('username', e.target.value)} required />
                                         {errors.username && <div className="text-red-500 text-xs mt-1">{errors.username}</div>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Password {isEdit && <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Opsional)</span>}
+                                            Password {isEdit && <span className="text-xs font-normal text-gray-500">(Opsional)</span>}
                                         </label>
                                         <input type="password" className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                                             value={data.password} onChange={e => setData('password', e.target.value)}
-                                            placeholder={isEdit ? "Biarkan kosong jika tetap" : ""}
+                                            placeholder={isEdit ? "Kosongkan jika tetap" : ""}
                                             required={!isEdit} />
                                     </div>
                                 </div>
-
-                                {/* Mapel & Wali Kelas */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mata Pelajaran</label>
-                                        <select className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        <select className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                                             value={data.mapel_id} onChange={e => setData('mapel_id', e.target.value)}>
                                             <option value="">- Pilih Mapel -</option>
                                             {mapels.map(m => <option key={m.id} value={m.id}>{m.nama_mapel}</option>)}
@@ -289,37 +318,40 @@ export default function GuruIndex({ auth, gurus, mapels, kelas }) {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Wali Kelas</label>
-                                        <select className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        <select className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                                             value={data.kelas_id} onChange={e => setData('kelas_id', e.target.value)}>
                                             <option value="">- Bukan Wali Kelas -</option>
                                             {kelas.map(k => <option key={k.id} value={k.id}>{k.nama_kelas}</option>)}
                                         </select>
                                     </div>
                                 </div>
-
-                                {/* Status */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status Akun</label>
                                     <select className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm"
                                         value={data.status_aktif} onChange={e => setData('status_aktif', e.target.value)}>
-                                        <option value="1">Aktif (Bisa Login)</option>
-                                        <option value="0">Non-Aktif (Dibekukan)</option>
+                                        <option value="1">Aktif</option>
+                                        <option value="0">Non-Aktif</option>
                                     </select>
                                 </div>
-
-                                {/* Footer Buttons */}
                                 <div className="flex flex-col sm:flex-row justify-end gap-2 md:gap-3 mt-4 md:mt-6 pt-3 md:pt-4 border-t border-gray-200 dark:border-gray-700">
-                                    <button type="button" onClick={closeModal} className="w-full sm:w-auto px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm">
-                                        Batal
-                                    </button>
+                                    <button type="button" onClick={closeModal} className="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition text-sm">Batal</button>
                                     <button type="submit" disabled={processing} className="w-full sm:w-auto px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg text-sm disabled:opacity-50">
-                                        {processing ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Tambah Guru')}
+                                        {processing ? 'Menyimpan...' : (isEdit ? 'Simpan' : 'Tambah')}
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 )}
+
+                {/* MODAL QR CODE */}
+                <QrCodeModal
+                    show={showQrModal}
+                    onClose={() => setShowQrModal(false)}
+                    user={selectedGuru}
+                    type="Guru"
+                />
+
             </div>
         </AuthenticatedLayout>
     );

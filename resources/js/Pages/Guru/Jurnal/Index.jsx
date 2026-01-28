@@ -9,11 +9,10 @@ import {
 export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
     const [activeTab, setActiveTab] = useState('beranda');
     const [showModal, setShowModal] = useState(false);
-    const [showPrintModal, setShowPrintModal] = useState(false); // Modal Cetak
-    const [selectedJurnal, setSelectedJurnal] = useState(null); // Data untuk dicetak
+    const [showPrintModal, setShowPrintModal] = useState(false);
+    const [selectedJurnal, setSelectedJurnal] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // --- FORM SETUP ---
     const { data, setData, post, reset, processing, errors } = useForm({
         kelas_id: '', mapel_id: '', tanggal: new Date().toISOString().split('T')[0],
         materi: '', sub_materi: '', semester: 'Ganjil', pertemuan_ke: 1,
@@ -36,7 +35,6 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
         });
     };
 
-    // --- LOGIC CETAK ---
     const handlePrintPreview = (jurnal) => {
         setSelectedJurnal(jurnal);
         setShowPrintModal(true);
@@ -48,11 +46,9 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
 
     const closePrintPreview = () => {
         setShowPrintModal(false);
-        // Delay sedikit agar animasi smooth
         setTimeout(() => setSelectedJurnal(null), 300);
     }
 
-    // Filter Data
     const filteredJurnals = jurnals.data.filter(j =>
         j.materi.toLowerCase().includes(searchTerm.toLowerCase()) ||
         j.mapel.nama_mapel.toLowerCase().includes(searchTerm.toLowerCase())
@@ -62,22 +58,245 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
         <AuthenticatedLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 dark:text-white">Jurnal Mengajar Digital</h2>}>
             <Head title="Jurnal Mengajar" />
 
-            {/* --- CSS KHUSUS CETAK --- */}
+            {/* CSS KHUSUS CETAK */}
             <style>{`
                 @media print {
+                    @page {
+                        size: A4;
+                        margin: 10mm;
+                    }
+
                     body * { visibility: hidden; }
                     #printable-content, #printable-content * { visibility: visible; }
-                    #printable-content { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; color: black; overflow: visible !important; height: auto !important; }
+                    #printable-content {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        padding: 0 0 30mm 0 !important;
+                        margin: 0 !important;
+                        background: white;
+                        color: black;
+                        overflow: visible !important;
+                        height: auto !important;
+                        min-height: 100vh !important;
+                    }
                     .no-print { display: none !important; }
-                    /* Paksa background color tercetak (untuk header tabel dll) */
+                    .kop-surat {
+                        overflow: hidden !important;
+                        margin: 0 0 15px 0 !important;
+                        border: 3px solid #000 !important;
+                        border-left: 8px solid #1e4d7b !important;
+                    }
+                    .kop-container {
+                        display: flex !important;
+                        align-items: center !important;
+                        width: 100% !important;
+                    }
+                    .kop-logo-section {
+                        width: 140px !important;
+                        padding: 15px !important;
+                        flex-shrink: 0 !important;
+                    }
+                    .kop-logo {
+                        width: 110px !important;
+                        height: 110px !important;
+                    }
+                    .kop-content {
+                        flex: 1 !important;
+                        padding: 8px 12px !important;
+                    }
+                    .kop-alamat {
+                        font-size: 7.5px !important;
+                        width: 120px !important;
+                        padding: 6px !important;
+                        flex-shrink: 0 !important;
+                        line-height: 1.4 !important;
+                    }
+                    .kop-nama-yayasan {
+                        font-size: 9px !important;
+                        margin: 0 0 2px 0 !important;
+                    }
+                    .kop-nama-sekolah {
+                        font-size: 22px !important;
+                        letter-spacing: 1.5px !important;
+                        margin: 3px 0 !important;
+                    }
+                    .kop-nsm-npsn {
+                        font-size: 9px !important;
+                        margin: 3px 0 !important;
+                    }
+                    .kop-status {
+                        font-size: 11px !important;
+                        padding: 3px 18px !important;
+                        margin: 4px 0 !important;
+                    }
+                    .kop-contact {
+                        font-size: 8.5px !important;
+                        gap: 15px !important;
+                        margin-top: 6px !important;
+                    }
+                    .kop-contact-item {
+                        gap: 5px !important;
+                    }
+                    .kop-icon {
+                        width: 13px !important;
+                        height: 13px !important;
+                        font-size: 8px !important;
+                    }
+
+                    /* Styling untuk konten lainnya */
+                    .text-center { text-align: center !important; }
+                    .font-bold { font-weight: bold !important; }
+                    table {
+                        width: 100% !important;
+                        page-break-inside: avoid !important;
+                    }
+
+                    /* Tanda tangan kompak agar NIP terlihat penuh */
+                    .flex.justify-end {
+                        margin-top: 12px !important;
+                        margin-bottom: 10px !important;
+                        page-break-inside: avoid !important;
+                    }
+
+                    /* Mengurangi jarak untuk tanda tangan */
+                    .mb-10 {
+                        margin-bottom: 2rem !important;
+                    }
+
+                    page-break-inside: avoid;
                     -webkit-print-color-adjust: exact;
                     print-color-adjust: exact;
+                }
+                    print-color-adjust: exact;
+                }
+
+                /* Style untuk kop surat */
+                .kop-surat {
+                    margin-bottom: 20px;
+                    border: 3px solid #000;
+                    border-left: 8px solid #1e4d7b;
+                    overflow: hidden;
+                }
+
+                .kop-container {
+                    display: flex;
+                    align-items: center;
+                }
+
+                .kop-logo-section {
+                    width: 180px;
+                    background: linear-gradient(135deg, #1e4d7b 0%, #2d6a9f 100%);
+                    padding: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .kop-logo {
+                    width: 140px;
+                    height: 140px;
+                }
+
+                .kop-logo img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                }
+
+                .kop-content {
+                    flex: 1;
+                    padding: 12px 20px;
+                    background: white;
+                }
+
+                .kop-nama-yayasan {
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #000;
+                    margin: 0 0 3px 0;
+                    line-height: 1.3;
+                    font-family: Arial, sans-serif;
+                }
+
+                .kop-nama-sekolah {
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: #1e5a96;
+                    margin: 5px 0;
+                    letter-spacing: 3px;
+                    font-family: Arial, sans-serif;
+                    line-height: 1.2;
+                }
+
+                .kop-nsm-npsn {
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #000;
+                    margin: 5px 0;
+                    font-family: Arial, sans-serif;
+                }
+
+                .kop-status {
+                    background-color: #1e5a96;
+                    color: white;
+                    font-size: 13px;
+                    font-weight: 700;
+                    padding: 5px 25px;
+                    display: inline-block;
+                    margin: 6px 0;
+                    font-family: Arial, sans-serif;
+                }
+
+                .kop-contact {
+                    font-size: 10px;
+                    color: #000;
+                    margin-top: 8px;
+                    display: flex;
+                    gap: 25px;
+                    font-family: Arial, sans-serif;
+                }
+
+                .kop-contact-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .kop-icon {
+                    width: 16px;
+                    height: 16px;
+                    background-color: #ff6600;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    flex-shrink: 0;
+                    color: white;
+                }
+
+                .kop-alamat {
+                    font-size: 9px;
+                    color: #000;
+                    font-style: italic;
+                    text-align: right;
+                    line-height: 1.6;
+                    padding: 10px 10px;
+                    width: 140px;
+                    flex-shrink: 0;
+                    font-family: Arial, sans-serif;
+                    align-self: center;
+                    word-wrap: break-word;
+                    white-space: normal;
                 }
             `}</style>
 
             <div className="py-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                {/* --- NAVIGATION TABS --- */}
+                {/* NAVIGATION TABS */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6 p-2 flex gap-2 overflow-x-auto no-print">
                     <button
                         onClick={() => setActiveTab('beranda')}
@@ -99,7 +318,7 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                     </button>
                 </div>
 
-                {/* --- PAGE: BERANDA --- */}
+                {/* PAGE: BERANDA */}
                 {activeTab === 'beranda' && (
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-10 text-center no-print animate-in fade-in zoom-in duration-300">
                         <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">Selamat Datang, {auth.user.name}</h1>
@@ -112,25 +331,23 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                     </div>
                 )}
 
-                {/* --- PAGE: DAFTAR JURNAL --- */}
+                {/* PAGE: DAFTAR JURNAL */}
                 {activeTab === 'data' && (
                     <div className="space-y-6 no-print animate-in slide-in-from-right duration-300">
 
-                        {/* Filter Bar */}
                         <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
                             <div className="relative w-full md:w-96">
-                                <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                                <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400 dark:text-gray-500" />
                                 <input
                                     type="text"
                                     placeholder="Cari materi atau mapel..."
-                                    className="pl-10 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-blue-500"
+                                    className="pl-10 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-blue-500 dark:focus:ring-blue-400"
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
                                 />
                             </div>
                         </div>
 
-                        {/* Table List */}
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">
@@ -145,30 +362,30 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                         {filteredJurnals.length === 0 ? (
-                                            <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">Belum ada data jurnal.</td></tr>
+                                            <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">Belum ada data jurnal.</td></tr>
                                         ) : (
                                             filteredJurnals.map((item) => (
-                                                <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
+                                                <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-800 dark:text-gray-200">
                                                     <td className="px-6 py-4 font-medium">{new Date(item.tanggal).toLocaleDateString('id-ID')}</td>
                                                     <td className="px-6 py-4">
-                                                        <div className="font-bold">{item.mapel.nama_mapel}</div>
-                                                        <div className="text-xs text-gray-500">{item.kelas.nama_kelas}</div>
+                                                        <div className="font-bold text-gray-900 dark:text-gray-100">{item.mapel.nama_mapel}</div>
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400">{item.kelas.nama_kelas}</div>
                                                     </td>
                                                     <td className="px-6 py-4 truncate max-w-xs">{item.materi}</td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold">H: {item.jml_hadir}</span>
+                                                        <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full font-bold">H: {item.jml_hadir}</span>
                                                     </td>
                                                     <td className="px-6 py-4 text-center flex justify-center gap-2">
                                                         <button
                                                             onClick={() => handlePrintPreview(item)}
-                                                            className="text-blue-600 hover:text-blue-800 bg-blue-50 p-2 rounded-lg transition"
+                                                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg transition"
                                                             title="Lihat & Cetak"
                                                         >
                                                             <Printer className="w-5 h-5" />
                                                         </button>
                                                         <button
                                                             onClick={() => { if(confirm('Hapus jurnal ini?')) router.delete(route('guru.jurnal.destroy', item.id)) }}
-                                                            className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg transition"
+                                                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/30 p-2 rounded-lg transition"
                                                             title="Hapus"
                                                         >
                                                             <Trash2 className="w-5 h-5" />
@@ -184,10 +401,9 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                     </div>
                 )}
 
-                {/* --- MODAL FORM (INPUT JURNAL) --- */}
+                {/* MODAL FORM */}
                 {showModal && (
                     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 no-print">
-                        {/* PERBAIKAN: Gunakan flex-col dan max-h untuk scroll internal */}
                         <div className="bg-white dark:bg-gray-800 w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col max-h-[95vh]">
                             <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 rounded-t-2xl flex-shrink-0">
                                 <h3 className="text-xl font-bold text-gray-800 dark:text-white">Form Jurnal Mengajar</h3>
@@ -203,51 +419,51 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
                                             <div className="md:col-span-2">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Mata Pelajaran</label>
-                                                <select className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.mapel_id} onChange={e => setData('mapel_id', e.target.value)} required>
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Mata Pelajaran</label>
+                                                <select className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.mapel_id} onChange={e => setData('mapel_id', e.target.value)} required>
                                                     <option value="">Pilih Mapel...</option>
                                                     {mapels.map(m => <option key={m.id} value={m.id}>{m.nama_mapel}</option>)}
                                                 </select>
                                             </div>
                                             <div className="md:col-span-1">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Kelas</label>
-                                                <select className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.kelas_id} onChange={e => setData('kelas_id', e.target.value)} required>
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Kelas</label>
+                                                <select className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.kelas_id} onChange={e => setData('kelas_id', e.target.value)} required>
                                                     <option value="">Pilih Kelas...</option>
                                                     {kelas.map(k => <option key={k.id} value={k.id}>{k.nama_kelas}</option>)}
                                                 </select>
                                             </div>
                                             <div className="md:col-span-1">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Semester</label>
-                                                <select className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.semester} onChange={e => setData('semester', e.target.value)}>
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Semester</label>
+                                                <select className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.semester} onChange={e => setData('semester', e.target.value)}>
                                                     <option value="Ganjil">Ganjil</option>
                                                     <option value="Genap">Genap</option>
                                                 </select>
                                             </div>
 
                                             <div className="md:col-span-1">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tanggal</label>
-                                                <input type="date" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.tanggal} onChange={e => setData('tanggal', e.target.value)} required />
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tanggal</label>
+                                                <input type="date" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.tanggal} onChange={e => setData('tanggal', e.target.value)} required />
                                             </div>
                                             <div className="md:col-span-1">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Pertemuan Ke-</label>
-                                                <input type="number" min="1" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.pertemuan_ke} onChange={e => setData('pertemuan_ke', e.target.value)} />
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Pertemuan Ke-</label>
+                                                <input type="number" min="1" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.pertemuan_ke} onChange={e => setData('pertemuan_ke', e.target.value)} />
                                             </div>
                                             <div className="md:col-span-1">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Jam Pelajaran</label>
-                                                <input type="text" placeholder="Cth: 1-3" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.jam_pelajaran} onChange={e => setData('jam_pelajaran', e.target.value)} />
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Jam Pelajaran</label>
+                                                <input type="text" placeholder="Cth: 1-3" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500" value={data.jam_pelajaran} onChange={e => setData('jam_pelajaran', e.target.value)} />
                                             </div>
                                             <div className="md:col-span-1">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nomor KI/KD</label>
-                                                <input type="text" placeholder="Cth: 3.1, 4.1" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.ki_kd} onChange={e => setData('ki_kd', e.target.value)} />
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Nomor KI/KD</label>
+                                                <input type="text" placeholder="Cth: 3.1, 4.1" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500" value={data.ki_kd} onChange={e => setData('ki_kd', e.target.value)} />
                                             </div>
 
                                             <div className="md:col-span-2">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Materi Pokok</label>
-                                                <input type="text" className="w-full rounded-lg border-gray-300 dark:bg-gray-700 font-bold" value={data.materi} onChange={e => setData('materi', e.target.value)} required />
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Materi Pokok</label>
+                                                <input type="text" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 font-bold" value={data.materi} onChange={e => setData('materi', e.target.value)} required />
                                             </div>
                                             <div className="md:col-span-2">
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Sub Materi</label>
-                                                <input type="text" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.sub_materi} onChange={e => setData('sub_materi', e.target.value)} />
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Sub Materi</label>
+                                                <input type="text" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.sub_materi} onChange={e => setData('sub_materi', e.target.value)} />
                                             </div>
                                         </div>
                                     </div>
@@ -259,29 +475,29 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tujuan Pembelajaran</label>
-                                                <textarea rows="3" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.tujuan_pembelajaran} onChange={e => setData('tujuan_pembelajaran', e.target.value)}></textarea>
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Tujuan Pembelajaran</label>
+                                                <textarea rows="3" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.tujuan_pembelajaran} onChange={e => setData('tujuan_pembelajaran', e.target.value)}></textarea>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Kegiatan Pembelajaran</label>
-                                                <textarea rows="3" placeholder="Pendahuluan, Inti, Penutup..." className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.kegiatan_pembelajaran} onChange={e => setData('kegiatan_pembelajaran', e.target.value)}></textarea>
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Kegiatan Pembelajaran</label>
+                                                <textarea rows="3" placeholder="Pendahuluan, Inti, Penutup..." className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500" value={data.kegiatan_pembelajaran} onChange={e => setData('kegiatan_pembelajaran', e.target.value)}></textarea>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Penjelasan Materi</label>
-                                                <textarea rows="3" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.penjelasan_materi} onChange={e => setData('penjelasan_materi', e.target.value)}></textarea>
+                                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Penjelasan Materi</label>
+                                                <textarea rows="3" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.penjelasan_materi} onChange={e => setData('penjelasan_materi', e.target.value)}></textarea>
                                             </div>
                                             <div className="grid grid-cols-1 gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Media Belajar</label>
-                                                    <input type="text" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.media_belajar} onChange={e => setData('media_belajar', e.target.value)} />
+                                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Media Belajar</label>
+                                                    <input type="text" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.media_belajar} onChange={e => setData('media_belajar', e.target.value)} />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Respon Siswa</label>
-                                                    <input type="text" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.respon_siswa} onChange={e => setData('respon_siswa', e.target.value)} />
+                                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Respon Siswa</label>
+                                                    <input type="text" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.respon_siswa} onChange={e => setData('respon_siswa', e.target.value)} />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Penilaian</label>
-                                                    <input type="text" className="w-full rounded-lg border-gray-300 dark:bg-gray-700" value={data.jenis_penilaian} onChange={e => setData('jenis_penilaian', e.target.value)} />
+                                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Penilaian</label>
+                                                    <input type="text" className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" value={data.jenis_penilaian} onChange={e => setData('jenis_penilaian', e.target.value)} />
                                                 </div>
                                             </div>
                                         </div>
@@ -319,13 +535,13 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                             </div>
                                             <div className="space-y-3 mt-2">
                                                 <div>
-                                                    <input type="text" placeholder="Tugas / PR..." className="w-full rounded-lg border-gray-300 text-sm" value={data.tugas_pr} onChange={e => setData('tugas_pr', e.target.value)} />
+                                                    <input type="text" placeholder="Tugas / PR..." className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 text-sm" value={data.tugas_pr} onChange={e => setData('tugas_pr', e.target.value)} />
                                                 </div>
                                                 <div>
-                                                    <input type="text" placeholder="Evaluasi Hasil..." className="w-full rounded-lg border-gray-300 text-sm" value={data.evaluasi_hasil} onChange={e => setData('evaluasi_hasil', e.target.value)} />
+                                                    <input type="text" placeholder="Evaluasi Hasil..." className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 text-sm" value={data.evaluasi_hasil} onChange={e => setData('evaluasi_hasil', e.target.value)} />
                                                 </div>
                                                 <div>
-                                                    <input type="text" placeholder="Permasalahan KBM..." className="w-full rounded-lg border-gray-300 text-sm" value={data.permasalahan_kbm} onChange={e => setData('permasalahan_kbm', e.target.value)} />
+                                                    <input type="text" placeholder="Permasalahan KBM..." className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 text-sm" value={data.permasalahan_kbm} onChange={e => setData('permasalahan_kbm', e.target.value)} />
                                                 </div>
                                             </div>
                                         </div>
@@ -334,14 +550,14 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                     {/* UPLOAD & SUBMIT */}
                                     <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                                         <div className="flex-1">
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Dokumentasi (Foto)</label>
-                                            <input type="file" className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onChange={e => setData('dokumentasi', e.target.files[0])} />
+                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Dokumentasi (Foto)</label>
+                                            <input type="file" className="text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800" onChange={e => setData('dokumentasi', e.target.files[0])} />
                                         </div>
                                         <div className="flex gap-3">
-                                            <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                                            <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                                                 Batal
                                             </button>
-                                            <button type="submit" disabled={processing} className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg transition">
+                                            <button type="submit" disabled={processing} className="px-6 py-2.5 rounded-lg bg-blue-600 dark:bg-blue-500 text-white font-bold hover:bg-blue-700 dark:hover:bg-blue-600 shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
                                                 {processing ? 'Menyimpan...' : 'Simpan Jurnal'}
                                             </button>
                                         </div>
@@ -353,13 +569,12 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                     </div>
                 )}
 
-                {/* --- MODAL PREVIEW CETAK (DETAIL) --- */}
+                {/* MODAL PREVIEW CETAK */}
                 {showPrintModal && selectedJurnal && (
                     <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-0 md:p-4">
-                        {/* PERBAIKAN: Tinggi modal tetap (tidak min-h-screen) untuk scroll internal */}
                         <div className="bg-white w-full max-w-4xl h-full md:h-auto md:max-h-[95vh] md:rounded-lg shadow-2xl flex flex-col relative animate-in fade-in zoom-in duration-300">
 
-                            {/* Tombol Aksi (Tidak Tercetak) - Flex-shrink-0 agar tidak mengecil */}
+                            {/* Tombol Aksi */}
                             <div className="p-4 border-b flex justify-between items-center bg-gray-100 no-print rounded-t-lg flex-shrink-0 shadow-sm">
                                 <div className="flex items-center gap-2">
                                     <button
@@ -381,12 +596,57 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                 </div>
                             </div>
 
-                            {/* AREA KERTAS (YANG AKAN DICETAK) - Scroll di sini */}
-                            <div id="printable-content" className="p-10 font-serif text-black leading-relaxed flex-1 overflow-y-auto">
-                                {/* Header Surat */}
-                                <div className="text-center border-b-2 border-black pb-4 mb-6">
+                            {/* AREA KERTAS DENGAN KOP SURAT */}
+                            <div id="printable-content" className="p-10 font-serif text-black leading-relaxed flex-1 overflow-y-auto" style={{maxWidth: '100%'}}>
+
+                                {/* KOP SURAT */}
+                                <div className="kop-surat">
+                                    <div className="kop-container">
+                                        {/* Background Biru Penuh dengan Logo */}
+                                        <div className="kop-logo-section">
+                                            <div className="kop-logo">
+                                                <img src="/images/logosekolah.png" alt="Logo Sekolah" />
+                                            </div>
+                                        </div>
+
+                                        {/* Konten Utama */}
+                                        <div className="kop-content">
+                                            <p className="kop-nama-yayasan">YAYASAN SYEKH ABDURRAHMAN BUJU' AGUNG RABAH (YASYRAH)</p>
+                                            <h1 className="kop-nama-sekolah">MA. SYEKH ABDURRAHMAN</h1>
+                                            <p className="kop-nsm-npsn">NSM: 131235280108&nbsp;&nbsp;&nbsp;&nbsp;NPSN: 69994782</p>
+                                            <div className="kop-status">TERAKREDITASI</div>
+                                            <div className="kop-contact">
+                                                <div className="kop-contact-item">
+                                                    <div className="kop-icon">🌐</div>
+                                                    <span>www.sabar.or.id</span>
+                                                </div>
+                                                <div className="kop-contact-item">
+                                                    <div className="kop-icon">✉</div>
+                                                    <span>ma.syekhabdurrahman@gmail.com</span>
+                                                </div>
+                                                <div className="kop-contact-item">
+                                                    <div className="kop-icon">📞</div>
+                                                    <span>+6282334240445</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Alamat Kanan */}
+                                        <div className="kop-alamat">
+                                            <i>Jl. Asta Rabah,<br />
+                                            Kompleks PP<br />
+                                            Syekh Abdurrahman<br />
+                                            Rabah Sumedangan,<br />
+                                            Pademawu,<br />
+                                            Pamekasan<br />
+                                            69321</i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Header Jurnal */}
+                                <div className="text-center mb-6 mt-4">
                                     <h2 className="text-xl font-bold uppercase tracking-wider mb-1">JURNAL MENGAJAR HARIAN</h2>
-                                    <h3 className="text-lg font-bold uppercase">MA SYEKH ABDURRAHMAN</h3>
                                     <p className="text-sm mt-2">Semester {selectedJurnal.semester || 'Ganjil'} | Tahun Ajaran {new Date().getFullYear()}/{new Date().getFullYear()+1}</p>
                                 </div>
 
@@ -464,7 +724,7 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                     </table>
                                 </div>
 
-                                <div className="mb-8">
+                                <div className="mb-4">
                                     <h4 className="font-bold border-b border-black mb-2 pb-1">D. CATATAN & EVALUASI</h4>
                                     <div className="text-sm pl-2 space-y-1">
                                         <p><span className="font-bold">Tugas / PR:</span> {selectedJurnal.tugas_pr || '-'}</p>
@@ -473,16 +733,16 @@ export default function JurnalIndex({ auth, jurnals, kelas, mapels }) {
                                 </div>
 
                                 {/* Tanda Tangan */}
-                                <div className="flex justify-end mt-12 pr-10">
+                                <div className="flex justify-end mt-6 pr-10 mb-6" style={{pageBreakInside: 'avoid'}}>
                                     <div className="text-center">
-                                        <p className="mb-16">Guru Mata Pelajaran,</p>
+                                        <p className="mb-10">Guru Mata Pelajaran,</p>
                                         <p className="font-bold underline">{auth.user.name}</p>
-                                        <p className="text-xs">NIP. .......................</p>
+                                        <p className="text-xs mt-1">NIP. .......................</p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Footer Modal dengan Tombol Kembali Besar */}
+                            {/* Footer Modal */}
                             <div className="p-4 border-t bg-gray-50 no-print rounded-b-lg flex justify-center flex-shrink-0">
                                 <button
                                     onClick={closePrintPreview}

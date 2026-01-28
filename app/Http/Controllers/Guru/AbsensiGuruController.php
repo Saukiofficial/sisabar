@@ -3,84 +3,92 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
-use App\Models\AbsensiGuru;
-use App\Models\Guru;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Inertia\Inertia;
+use App\Models\User;
+use App\Models\AbsensiGuru;
 use Carbon\Carbon;
+use Inertia\Inertia;
 
 class AbsensiGuruController extends Controller
 {
     public function index()
     {
-        $guru = Guru::where('user_id', Auth::id())->first();
-        if (!$guru) return redirect()->route('dashboard');
-
-        $histories = AbsensiGuru::where('guru_id', $guru->id)->latest()->limit(30)->get();
-
-        return Inertia::render('Guru/AbsensiSaya/Index', [
-            'histories' => $histories
-        ]);
-    }
-
-    public function generateQr()
-    {
-        // FIX 1: Paksa Timezone Asia/Jakarta agar sinkron dengan jam dinding
-        $today = Carbon::now('Asia/Jakarta');
-
-        $token = 'ABSEN-' . $today->format('Y-m-d') . '-SEKOLAH-ID';
-        $qrCode = (string) QrCode::size(300)->generate($token);
-
-        return Inertia::render('Admin/Absensi/QrDisplay', [
-            'qrCode' => $qrCode,
-            'date' => $today->translatedFormat('l, d F Y')
+        return Inertia::render('Guru/Absensi/Index', [
+            'user' => Auth::user()
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate(['qr_token' => 'required']);
+        // 1. Validasi Input (Hanya pastikan string dikirim, jangan cek exists ke DB dulu)
+        $request->validate([
+            'nip_or_username' => 'required|string',
+        ]);
 
-        $inputToken = trim($request->qr_token);
+        $scannedValue = $request->nip_or_username;
+        $now = Carbon::now('Asia/Jakarta');
+        $today = $now->format('Y-m-d');
 
-        // FIX 2: Generate token pembanding juga menggunakan Asia/Jakarta
-        $today = Carbon::now('Asia/Jakarta');
-        $validToken = 'ABSEN-' . $today->format('Y-m-d') . '-SEKOLAH-ID';
+        // --- PERBAIKAN LOGIKA PENCARIAN (ANTI ERROR NIP) ---
+        // Kita cari User, BUKAN Guru. Karena tabel gurus tidak punya NIP.
 
-        // DEBUG: Jika token beda, kirim pesan error detail menggunakan 'error' flash
-        if ($inputToken !== $validToken) {
-            return redirect()->back()->with('error', "QR Invalid! Server minta: '$validToken', tapi Scan: '$inputToken'");
+        // Cek 1: Cari berdasarkan USERNAME
+        $user = User::where('username', $scannedValue)->first();
+
+        // Cek 2: Jika username tidak ketemu, dan inputnya angka, coba cari ID User
+        if (!$user && is_numeric($scannedValue)) {
+            $user = User::find($scannedValue);
         }
 
-        // --- PROSES ABSENSI ---
-        $guru = Guru::where('user_id', Auth::id())->first();
-        if(!$guru) return redirect()->back()->with('error', 'Data guru tidak ditemukan');
-
-        $dateString = $today->format('Y-m-d');
-        $timeString = $today->format('H:i:s');
-
-        $absen = AbsensiGuru::where('guru_id', $guru->id)->where('tanggal', $dateString)->first();
-
-        if (!$absen) {
-            AbsensiGuru::create([
-                'guru_id' => $guru->id,
-                'tanggal' => $dateString,
-                'jam_masuk' => $timeString,
-                'lokasi' => $request->lokasi,
-                'device_info' => $request->device_info
-            ]);
-            $message = 'Berhasil Check-in!';
-        } else {
-            if ($absen->jam_pulang == null) {
-                $absen->update(['jam_pulang' => $timeString]);
-                $message = 'Berhasil Check-out!';
-            } else {
-                $message = 'Anda sudah melengkapi absensi hari ini.';
-            }
+        // Jika User Masih Tidak Ditemukan
+        if (!$user) {
+            return response()->json([
+                'message' => 'Data tidak ditemukan! QR Code tidak valid.',
+                'status' => 'error'
+            ], 404);
         }
 
-        return redirect()->back()->with('message', $message);
+        // Cek 3: Pastikan User tersebut punya role Guru
+        if (!$user->hasRole('Guru')) {
+            return response()->json([
+                'message' => 'QR Code valid, tapi ini bukan akun Guru!',
+                'status' => 'error'
+            ], 403);
+        }
+
+        // 2. Cek Apakah Sudah Absen Hari Ini?
+        $sudahAbsen = AbsensiGuru::where('user_id', $user->id)
+            ->whereDate('tanggal', $today)
+            ->exists();
+
+        if ($sudahAbsen) {
+            return response()->json([
+                'message' => 'Anda sudah melakukan absensi hari ini.',
+                'guru' => $user->name,
+                'waktu' => $now->format('H:i'),
+                'status' => 'warning'
+            ], 200);
+        }
+
+        // 3. Tentukan Status Kehadiran
+        // Contoh aturan: Lewat jam 07:15 dianggap Terlambat
+        $jamMasuk = $now->format('H:i:s');
+        $statusKehadiran = $jamMasuk > '07:15:00' ? 'Terlambat' : 'Hadir';
+
+        // 4. Simpan Data Absensi
+        AbsensiGuru::create([
+            'user_id' => $user->id,
+            'tanggal' => $today,
+            'waktu_masuk' => $jamMasuk,
+            'status' => $statusKehadiran,
+        ]);
+
+        return response()->json([
+            'message' => 'Absensi Berhasil! Selamat mengajar.',
+            'guru' => $user->name,
+            'waktu' => $jamMasuk,
+            'status' => 'success'
+        ], 200);
     }
 }

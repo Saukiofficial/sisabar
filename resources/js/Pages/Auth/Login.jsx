@@ -151,7 +151,7 @@ export default function Login({ status, canResetPassword }) {
                                     />
                                 </div>
                                 <h1 className="text-2xl font-bold text-white">E-NGAJER</h1>
-                                <p className="text-yellow-200 text-sm">Guru</p>
+                                <p className="text-yellow-200 text-sm">Sistem Manajemen Mengajar Guru</p>
                             </div>
 
                             {/* Login Header with Traditional Border */}

@@ -7,27 +7,32 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Menambahkan kolom jenis, tanggal_mulai, tanggal_selesai ke tabel absensis
+     * Menambahkan kolom jenis, tanggal_mulai, tanggal_selesai ke tabel absensi_murids
      */
     public function up()
     {
-        Schema::table('absensis', function (Blueprint $table) {
-            // Cek apakah kolom 'jenis' sudah ada, jika belum, tambahkan
-            if (!Schema::hasColumn('absensis', 'jenis')) {
-                $table->string('jenis', 50)->nullable()->after('user_id')->comment('Sakit, Izin, Lainnya');
+        // GANTI 'absensis' MENJADI 'absensi_murids'
+        Schema::table('absensi_murids', function (Blueprint $table) {
+            // [PERBAIKAN] Cek dulu apakah kolom 'user_id' ada.
+            // Jika tidak ada, buat dulu (opsional, tergantung struktur Anda)
+            // Atau cukup hapus 'after' agar kolom baru ditaruh di paling belakang.
+
+            // Disini saya hapus ->after('user_id') agar aman dari error "Column not found".
+
+            if (!Schema::hasColumn('absensi_murids', 'jenis')) {
+                $table->string('jenis', 50)->nullable()->comment('Sakit, Izin, Lainnya');
             }
 
-            // Tambahkan kolom tanggal mulai & selesai untuk rentang izin
-            if (!Schema::hasColumn('absensis', 'tanggal_mulai')) {
-                $table->date('tanggal_mulai')->nullable()->after('jenis');
-            }
-            if (!Schema::hasColumn('absensis', 'tanggal_selesai')) {
-                $table->date('tanggal_selesai')->nullable()->after('tanggal_mulai');
+            if (!Schema::hasColumn('absensi_murids', 'tanggal_mulai')) {
+                $table->date('tanggal_mulai')->nullable();
             }
 
-            // Pastikan kolom keterangan ada (biasanya tipe TEXT)
-            if (!Schema::hasColumn('absensis', 'keterangan')) {
-                $table->text('keterangan')->nullable()->after('status');
+            if (!Schema::hasColumn('absensi_murids', 'tanggal_selesai')) {
+                $table->date('tanggal_selesai')->nullable();
+            }
+
+            if (!Schema::hasColumn('absensi_murids', 'keterangan')) {
+                $table->text('keterangan')->nullable();
             }
         });
     }
@@ -37,7 +42,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('absensis', function (Blueprint $table) {
+        Schema::table('absensi_murids', function (Blueprint $table) {
             $table->dropColumn(['jenis', 'tanggal_mulai', 'tanggal_selesai', 'keterangan']);
         });
     }

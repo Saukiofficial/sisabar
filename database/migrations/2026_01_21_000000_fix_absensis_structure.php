@@ -11,29 +11,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('absensis', function (Blueprint $table) {
+        // GANTI 'absensis' MENJADI 'absensi_murids' (atau tabel yang sesuai)
+        Schema::table('absensi_murids', function (Blueprint $table) {
             // 1. Tambahkan kolom user_id jika belum ada
-            if (!Schema::hasColumn('absensis', 'user_id')) {
+            if (!Schema::hasColumn('absensi_murids', 'user_id')) {
                 $table->foreignId('user_id')->nullable()->after('id')->constrained('users')->onDelete('cascade');
             }
 
             // 2. Ubah kolom siswa_id agar boleh null (nullable) atau hapus
             // Kita buat nullable dulu agar data lama tidak hilang/error
-            if (Schema::hasColumn('absensis', 'siswa_id')) {
+            if (Schema::hasColumn('absensi_murids', 'siswa_id')) {
                 $table->unsignedBigInteger('siswa_id')->nullable()->change();
             }
 
             // 3. Pastikan kolom lain ada
-            if (!Schema::hasColumn('absensis', 'waktu_masuk')) {
+            if (!Schema::hasColumn('absensi_murids', 'waktu_masuk')) {
                 $table->time('waktu_masuk')->nullable();
             }
-            if (!Schema::hasColumn('absensis', 'waktu_pulang')) {
+            if (!Schema::hasColumn('absensi_murids', 'waktu_pulang')) {
                 $table->time('waktu_pulang')->nullable();
             }
-            if (!Schema::hasColumn('absensis', 'status')) {
-                $table->string('status')->default('Alpha');
+            // Kolom status sudah ditangani di migrasi sebelumnya, tapi tidak ada salahnya cek
+            if (!Schema::hasColumn('absensi_murids', 'status')) {
+                $table->string('status', 50)->default('Alpha');
             }
-            if (!Schema::hasColumn('absensis', 'keterangan')) {
+            if (!Schema::hasColumn('absensi_murids', 'keterangan')) {
                 $table->string('keterangan')->nullable();
             }
         });

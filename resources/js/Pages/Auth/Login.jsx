@@ -50,15 +50,20 @@ export default function Login({ status, canResetPassword }) {
 
                         {/* Logo & Brand - Traditional Style */}
                         <div className="absolute top-6 left-12 right-12 z-30">
-                            <div className="flex items-center gap-4 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-red-800/20">
-                                <div className="bg-gradient-to-br from-red-800 to-yellow-700 p-3 rounded-xl shadow-md">
-                                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                    </svg>
+                            <div className="flex items-center gap-4 bg-white/70 backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-red-800/20">
+                                <div className="bg-white/60 backdrop-blur-sm p-2 rounded-xl shadow-md">
+                                    <img
+                                        src="/images/icons/logosisabar.png"
+                                        alt="Logo SISABAR"
+                                        className="w-14 h-14 object-contain"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                        }}
+                                    />
                                 </div>
                                 <div>
                                     <h1 className="text-2xl font-bold bg-gradient-to-r from-red-900 to-yellow-800 bg-clip-text text-transparent">E-NGAJER</h1>
-                                    <p className="text-sm text-red-800 font-medium">Sistem Pangajaran Guru Madura</p>
+                                    <p className="text-sm text-red-800 font-medium">Sistem Manajemen Mengajar Guru</p>
                                     <p className="text-xs text-amber-700 italic">"Ngajar kalaben ateh "</p>
                                 </div>
                             </div>
@@ -70,9 +75,9 @@ export default function Login({ status, canResetPassword }) {
                             <div className="absolute inset-0 bg-gradient-to-br from-red-100/60 to-yellow-100/60 rounded-full blur-3xl transform rotate-6"></div>
 
                             {/* Main Content Card */}
-                            <div className="relative z-10 bg-white/70 backdrop-blur-md rounded-3xl p-8 shadow-2xl border-4 border-yellow-800/20">
+                            <div className="relative z-10 bg-white/40 backdrop-blur-md rounded-3xl p-8 shadow-2xl border-4 border-yellow-800/20">
                                 {/* Traditional Guru Illustration */}
-                                <div className="relative bg-gradient-to-br from-amber-100 to-red-100 rounded-2xl p-6 mb-6 overflow-hidden">
+                                <div className="relative bg-gradient-to-br from-amber-100/40 to-red-100/40 rounded-2xl p-6 mb-6 overflow-hidden backdrop-blur-sm">
                                     <img
                                         src="/images/guru.png"
                                         alt="Guru Madura"
@@ -87,7 +92,7 @@ export default function Login({ status, canResetPassword }) {
                                         }}
                                     />
                                     <div className="absolute top-4 right-4 bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                                        Guru Madura
+                                        Siap Maju Siap Besar
                                     </div>
                                 </div>
 
@@ -97,13 +102,13 @@ export default function Login({ status, canResetPassword }) {
                                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
                                         </svg>
-                                        Tradisi & Pendidikan
+                                        Digitalisasi Pendidikan
                                     </div>
                                     <p className="text-red-900 font-medium text-lg">
-                                        Ngajar kalaben Tradisi Madura
+                                        "Mewujudkan guru profesional melalui teknologi informasi untuk pendidikan yang lebih baik."
                                     </p>
                                     <p className="text-amber-800 text-sm italic">
-                                        "Pendidikan berbasis budaya lokal"
+                                        "Mendukung administrasi mengajar guru secara efisien dan efektif melalui teknologi digital."
                                     </p>
                                 </div>
                             </div>
@@ -118,7 +123,7 @@ export default function Login({ status, canResetPassword }) {
                         <div className="absolute bottom-4 left-0 right-0 text-center z-20">
                             <div className="inline-block bg-white/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border-2 border-yellow-700/20">
                                 <p className="text-sm text-red-900 font-semibold">
-                                    © 2026 E-NGAJER Madura
+                                    © 2026 E-NGAJER
                                 </p>
                                 <p className="text-xs text-amber-800 mt-1">Powered by kyysolutions</p>
                             </div>
@@ -135,20 +140,25 @@ export default function Login({ status, canResetPassword }) {
                         <div className="w-full max-w-md relative z-10">
                             {/* Mobile Logo */}
                             <div className="lg:hidden flex flex-col items-center mb-8">
-                                <div className="bg-white p-4 rounded-2xl shadow-2xl mb-4">
-                                    <svg className="w-16 h-16 text-red-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                    </svg>
+                                <div className="bg-white/60 backdrop-blur-sm p-4 rounded-2xl shadow-2xl mb-4">
+                                    <img
+                                        src="/images/icons/logosisabar.png"
+                                        alt="Logo SISABAR"
+                                        className="w-16 h-16 object-contain"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                        }}
+                                    />
                                 </div>
                                 <h1 className="text-2xl font-bold text-white">E-NGAJER</h1>
-                                <p className="text-yellow-200 text-sm">Guru Madura</p>
+                                <p className="text-yellow-200 text-sm">Guru</p>
                             </div>
 
                             {/* Login Header with Traditional Border */}
                             <div className="text-center mb-8 relative">
                                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent"></div>
-                                <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">Harus Masok</h2>
-                                <p className="text-yellow-200 text-sm sm:text-base">Sistem Pangajaran E-NGAJER</p>
+                                <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">NGIRENG MASOK</h2>
+                                <p className="text-yellow-200 text-sm sm:text-base">Ngajar Dengan Hati,Terdata & Bermakna</p>
                                 <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent"></div>
                             </div>
 
@@ -172,7 +182,7 @@ export default function Login({ status, canResetPassword }) {
                                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                         </svg>
-                                        Jeneng Pengguna
+                                        Nama Pengguna
                                     </label>
                                     <div className="relative">
                                         <input
@@ -182,7 +192,7 @@ export default function Login({ status, canResetPassword }) {
                                             value={data.email}
                                             onChange={(e) => setData('email', e.target.value)}
                                             className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border-2 border-yellow-600/40 rounded-xl text-white placeholder-yellow-200/60 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all shadow-lg"
-                                            placeholder="Ketik jeneng pengguna"
+                                            placeholder="Ketik nama pengguna"
                                             autoComplete="username"
                                             autoFocus
                                         />
@@ -235,7 +245,7 @@ export default function Login({ status, canResetPassword }) {
                                             className="rounded border-2 border-yellow-400/50 bg-white/10 text-yellow-500 focus:ring-yellow-400 focus:ring-offset-0 w-4 h-4"
                                         />
                                         <span className="ml-2 text-sm text-yellow-100 group-hover:text-white transition-colors">
-                                            sempen kabbi
+                                            sempen kabbhi
                                         </span>
                                     </label>
 
@@ -287,7 +297,7 @@ export default function Login({ status, canResetPassword }) {
                                         <p className="text-xs text-yellow-100 mb-1">
                                             Badha masalah?{' '}
                                             <a href="#" className="text-white hover:underline font-semibold">
-                                                Hubungi kabbi
+                                                Hubungi kami
                                             </a>
                                         </p>
                                         <a href="mailto:ppsabar150@gmail.com" className="inline-flex items-center gap-1 text-xs text-white hover:underline bg-white/10 px-3 py-1 rounded-full">

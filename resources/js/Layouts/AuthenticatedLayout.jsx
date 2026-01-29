@@ -6,7 +6,7 @@ import {
     Home, Book, BookOpen, ClipboardCheck, ScanLine, User, Settings,
     Menu, X, Moon, Sun, LogOut, FileText, Building, Users,
     Activity, GraduationCap, List, Edit, Calendar, CheckCircle, MoreHorizontal,
-    QrCode, MessageSquareText, CheckSquare, BookMarked // [MODIFIKASI] Ganti Globe dengan BookMarked
+    QrCode, MessageSquareText, CheckSquare, Globe, ExternalLink
 } from 'lucide-react';
 
 export default function Authenticated({ user, header, children }) {
@@ -98,18 +98,22 @@ export default function Authenticated({ user, header, children }) {
         { show: isSiswa, title: 'Ujian', icon: <Calendar size={20} />, href: safeRoute('siswa.ujian.index'), active: isActive('siswa.ujian.*') },
         { show: isSiswa, title: 'Izin & Sakit', icon: <MessageSquareText size={20} />, href: safeRoute('siswa.izin.index'), active: isActive('siswa.izin.*') },
         { show: isSiswa, title: 'Nilai', icon: <GraduationCap size={20} />, href: safeRoute('siswa.nilai.index'), active: isActive('siswa.nilai.*') },
-        { show: true, title: 'RDM', icon: <BookMarked size={20} />, href: 'https://masyekhabdurrahman.inirdm.com/', active: false, isExternal: true },
+
+        // ================= APLIKASI EKSTERNAL (SEMUA ROLE) =================
+        // external: true menandakan ini link luar, bukan route Inertia
+        // [UPDATE] Icon diganti menjadi Book (Buku/Raport) sesuai permintaan
+        { show: true, title: 'RDM MA', icon: <Book size={20} />, href: 'https://masyekhabdurrahman.inirdm.com/', active: false, external: true },
+        { show: true, title: 'RDM MTS', icon: <Book size={20} />, href: 'https://mtssyekhabdurrahman.rdmkami.com', active: false, external: true },
+        { show: true, title: 'E-RAPOR', icon: <Book size={20} />, href: 'https://google.com', active: false, external: true },
     ];
 
     const visibleMenus = allMenus.filter(m => m.show);
-
-    // Logic Mobile Menu
-    const maxPrimary = 3;
+    const maxPrimary = 4; // Menambah sedikit slot untuk mobile
     const showMoreButton = visibleMenus.length > maxPrimary;
     const mobilePrimaryMenus = visibleMenus.slice(0, maxPrimary);
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300 font-sans">
 
             {/* ================= DESKTOP SIDEBAR ================= */}
             <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen fixed left-0 top-0 z-50">
@@ -123,41 +127,32 @@ export default function Authenticated({ user, header, children }) {
                 <div className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
                     <nav className="px-4 space-y-1">
                         {visibleMenus.map((menu, index) => {
-                            const commonClasses = `flex items-center px-4 py-3 rounded-lg transition-colors duration-200 mb-1 group ${
-                                menu.active
-                                ? 'bg-blue-600 text-white shadow-md'
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                            }`;
-
-                            // [MODIFIKASI] Render <a> jika External Link, Render <Link> jika Internal
-                            if (menu.isExternal) {
-                                return (
-                                    <a
-                                        key={index}
-                                        href={menu.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={commonClasses}
-                                    >
-                                        <span className="text-gray-500 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400">
-                                            {menu.icon}
-                                        </span>
-                                        <span className="ml-3 font-medium text-sm">{menu.title}</span>
-                                    </a>
-                                );
-                            }
+                            // Logic untuk membedakan Link Internal (Inertia) vs Link Eksternal (<a>)
+                            const Tag = menu.external ? 'a' : Link;
+                            const props = menu.external
+                                ? { href: menu.href, target: '_blank', rel: 'noopener noreferrer' }
+                                : { href: menu.href };
 
                             return (
-                                <Link
+                                <Tag
                                     key={index}
-                                    href={menu.href}
-                                    className={commonClasses}
+                                    {...props}
+                                    className={`flex items-center px-4 py-3 rounded-lg transition-colors duration-200 mb-1 group ${
+                                        menu.active
+                                        ? 'bg-blue-600 text-white shadow-md'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    }`}
                                 >
                                     <span className={menu.active ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'}>
                                         {menu.icon}
                                     </span>
                                     <span className="ml-3 font-medium text-sm">{menu.title}</span>
-                                </Link>
+                                    {menu.external && (
+                                        <span className="ml-auto text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600">
+                                            Ext
+                                        </span>
+                                    )}
+                                </Tag>
                             );
                         })}
                     </nav>
@@ -212,6 +207,7 @@ export default function Authenticated({ user, header, children }) {
                                 <Dropdown.Trigger>
                                     <button type="button" className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-white focus:outline-none transition">
                                         <div className="flex items-center gap-2">
+                                            {/* --- TAMPILKAN FOTO PROFIL HEADER (DESKTOP) --- */}
                                             {user?.avatar ? (
                                                 <img
                                                     src={`/storage/${user.avatar}`}
@@ -244,35 +240,34 @@ export default function Authenticated({ user, header, children }) {
             {/* ================= MOBILE BOTTOM NAV ================= */}
             <div className="md:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 h-[70px] flex justify-around items-center z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] px-1 safe-area-pb">
 
+                {/* 1. Menu Utama (Dibatasi agar muat dengan Lainnya & Akun) */}
                 {mobilePrimaryMenus.map((menu, index) => {
-                    const commonClasses = `flex flex-col items-center justify-center w-full h-full space-y-1 active:scale-95 transition-transform ${
-                        menu.active
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-blue-500'
-                    }`;
-
-                    if (menu.isExternal) {
-                        return (
-                            <a key={index} href={menu.href} target="_blank" rel="noopener noreferrer" className={commonClasses}>
-                                <div className={`p-1.5 rounded-xl`}>
-                                    {menu.icon}
-                                </div>
-                                <span className="text-[10px] font-medium truncate max-w-[60px] leading-none">{menu.title}</span>
-                            </a>
-                        );
-                    }
+                    const Tag = menu.external ? 'a' : Link;
+                    const props = menu.external
+                        ? { href: menu.href, target: '_blank', rel: 'noopener noreferrer' }
+                        : { href: menu.href };
 
                     return (
-                        <Link key={index} href={menu.href} className={commonClasses}>
+                        <Tag
+                            key={index}
+                            {...props}
+                            className={`flex flex-col items-center justify-center w-full h-full space-y-1 active:scale-95 transition-transform ${
+                                menu.active
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-blue-500'
+                            }`}
+                        >
                             <div className={`p-1.5 rounded-xl ${menu.active ? 'bg-blue-50 dark:bg-blue-900/30' : ''}`}>
                                 {menu.icon}
                             </div>
-                            <span className="text-[10px] font-medium truncate max-w-[60px] leading-none">{menu.title}</span>
-                        </Link>
+                            <span className="text-[10px] font-medium truncate max-w-[60px] leading-none">
+                                {menu.title}
+                            </span>
+                        </Tag>
                     );
                 })}
 
-                {/* Tombol LAINNYA & AKUN tetap sama */}
+                {/* 2. Tombol LAINNYA (Jika menu > Max) */}
                 {showMoreButton && (
                     <button
                         onClick={() => setIsMobileMenuOpen(true)}
@@ -285,6 +280,7 @@ export default function Authenticated({ user, header, children }) {
                     </button>
                 )}
 
+                {/* 3. Tombol AKUN (Selalu Muncul di Kanan) */}
                 <Link
                     href={safeRoute('profile.edit')}
                     className={`flex flex-col items-center justify-center w-full h-full space-y-1 active:scale-95 transition-transform ${
@@ -295,17 +291,23 @@ export default function Authenticated({ user, header, children }) {
                 >
                     <div className={`p-0.5 rounded-full border-2 ${isActive('profile.edit') ? 'border-blue-500' : 'border-transparent'}`}>
                         {user?.avatar ? (
-                            <img src={`/storage/${user.avatar}`} alt="Akun" className="w-6 h-6 rounded-full object-cover bg-gray-200" />
+                            <img
+                                src={`/storage/${user.avatar}`}
+                                alt="Akun"
+                                className="w-6 h-6 rounded-full object-cover bg-gray-200"
+                            />
                         ) : (
-                            <div className="bg-gray-100 dark:bg-gray-700 p-1 rounded-full"><User size={20} /></div>
+                            <div className="bg-gray-100 dark:bg-gray-700 p-1 rounded-full">
+                                <User size={20} />
+                            </div>
                         )}
                     </div>
                     <span className="text-[10px] font-medium leading-none">Akun</span>
                 </Link>
             </div>
 
-            {/* ================= MOBILE MENU DRAWER ================= */}
-            {/* Drawer Logic disesuaikan untuk link eksternal */}
+            {/* ================= MOBILE MENU DRAWER (SHEET) ================= */}
+            {/* Overlay */}
             {isMobileMenuOpen && (
                 <div
                     className="md:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity"
@@ -313,47 +315,73 @@ export default function Authenticated({ user, header, children }) {
                 />
             )}
 
+            {/* Drawer Content */}
             <div className={`md:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 z-[70] rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-out max-h-[85vh] flex flex-col ${isMobileMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+
                 <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 rounded-t-2xl">
                     <h3 className="font-bold text-gray-800 dark:text-white">Menu Lengkap</h3>
-                    <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300"><X size={20} /></button>
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300">
+                        <X size={20} />
+                    </button>
                 </div>
+
                 <div className="overflow-y-auto p-4 pb-24 grid grid-cols-4 gap-4">
                     {visibleMenus.map((menu, idx) => {
-                        const drawerClass = "flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition";
-                        const iconClass = `p-3 rounded-full ${menu.active ? 'bg-blue-600 text-white' : 'bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-gray-300'}`;
+                        const Tag = menu.external ? 'a' : Link;
+                        const props = menu.external
+                            ? { href: menu.href, target: '_blank', rel: 'noopener noreferrer' }
+                            : { href: menu.href };
 
-                        if (menu.isExternal) {
-                             return (
-                                <a key={idx} href={menu.href} target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)} className={drawerClass}>
-                                    <div className={iconClass}>{menu.icon}</div>
-                                    <span className="text-xs text-center font-medium text-gray-700 dark:text-gray-300 line-clamp-2 leading-tight">{menu.title}</span>
-                                </a>
-                            );
-                        }
                         return (
-                            <Link key={idx} href={menu.href} onClick={() => setIsMobileMenuOpen(false)} className={drawerClass}>
-                                <div className={iconClass}>{menu.icon}</div>
-                                <span className="text-xs text-center font-medium text-gray-700 dark:text-gray-300 line-clamp-2 leading-tight">{menu.title}</span>
-                            </Link>
+                            <Tag
+                                key={idx}
+                                {...props}
+                                onClick={() => !menu.external && setIsMobileMenuOpen(false)}
+                                className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
+                            >
+                                <div className={`p-3 rounded-full ${menu.active ? 'bg-blue-600 text-white' : 'bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-gray-300'}`}>
+                                    {menu.icon}
+                                </div>
+                                <span className="text-xs text-center font-medium text-gray-700 dark:text-gray-300 line-clamp-2 leading-tight">
+                                    {menu.title}
+                                </span>
+                            </Tag>
                         );
                     })}
 
-                    {/* Settings & Logout tetap sama seperti file asli... */}
-                    <Link href={safeRoute('profile.edit')} className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                    {/* Menu Pengaturan di Drawer */}
+                    <Link
+                        href={safeRoute('profile.edit')}
+                        className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
+                    >
                         <div className="p-1 rounded-full border-2 border-blue-500 overflow-hidden w-[46px] h-[46px]">
                             {user?.avatar ? (
-                                <img src={`/storage/${user.avatar}`} alt="Akun" className="w-full h-full object-cover" />
+                                <img
+                                    src={`/storage/${user.avatar}`}
+                                    alt="Akun"
+                                    className="w-full h-full object-cover"
+                                />
                             ) : (
-                                <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><Settings size={20} className="text-gray-600 dark:text-gray-300" /></div>
+                                <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                    <Settings size={20} className="text-gray-600 dark:text-gray-300" />
+                                </div>
                             )}
                         </div>
-                        <span className="text-xs text-center font-medium text-gray-700 dark:text-gray-300">Pengaturan</span>
+                        <span className="text-xs text-center font-medium text-gray-700 dark:text-gray-300">
+                            Pengaturan
+                        </span>
                     </Link>
 
-                    <Link href={safeRoute('logout')} method="post" as="button" className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition group">
-                        <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white transition"><LogOut size={20} /></div>
-                        <span className="text-xs text-center font-medium text-red-600 dark:text-red-400">Keluar</span>
+                    <Link
+                        href={safeRoute('logout')} method="post" as="button"
+                        className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition group"
+                    >
+                        <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white transition">
+                            <LogOut size={20} />
+                        </div>
+                        <span className="text-xs text-center font-medium text-red-600 dark:text-red-400">
+                            Keluar
+                        </span>
                     </Link>
                 </div>
             </div>
